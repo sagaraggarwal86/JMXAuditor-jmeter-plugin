@@ -10,6 +10,10 @@ buildNumber.properties
 # https://maven.apache.org/wrapper/#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
 
+# IntelliJ IDEA
+.idea/
+*.iml
+
 # Eclipse m2e generated files
 # Eclipse Core
 .project

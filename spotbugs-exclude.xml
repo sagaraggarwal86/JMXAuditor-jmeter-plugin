@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Swing/JMeter model objects (Dimension, Point, JMeterTreeModel, collections) are intentionally
+         passed by reference inside the plugin. Copying them would break Swing layout and session semantics.
+         These are not security-sensitive boundaries. -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,MS_EXPOSE_REP"/>
+    </Match>
+    <!-- currentDialog is intentionally static: only one JAuditor dialog per JMeter process. -->
+    <Match>
+        <Class name="io.github.sagaraggarwal86.jmeter.jauditor.ui.action.AuditCommand"/>
+        <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD"/>
+    </Match>
+    <!-- redact() collapses null/empty and non-empty to the same "****" sentinel on purpose. -->
+    <Match>
+        <Class name="io.github.sagaraggarwal86.jmeter.jauditor.util.JAuditorLog"/>
+        <Bug pattern="DB_DUPLICATE_BRANCHES"/>
+    </Match>
+    <!-- Redundant-null-check warnings — defensive null guards retained for JMeter API drift. -->
+    <Match>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+</FindBugsFilter>

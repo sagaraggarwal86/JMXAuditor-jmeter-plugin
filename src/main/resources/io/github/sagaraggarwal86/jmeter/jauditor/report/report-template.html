@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <style>{
+    {
+        styles
+    }
+    }</style>
+</head>
+<body>
+<header class="report-header">
+    <h1>JAuditor</h1>
+    <div class="meta">
+        <div><strong>File:</strong> {{jmxFileName}}</div>
+        <div><strong>Path:</strong> <code>{{jmxFilePath}}</code></div>
+        <div><strong>JMeter:</strong> {{jmeterVersion}}</div>
+        <div><strong>Scanned:</strong> {{scanTimestamp}}</div>
+        <div><strong>Plugin:</strong> v{{pluginVersion}}</div>
+    </div>
+</header>
+
+{{unsavedBanner}}
+{{truncationBanner}}
+
+<section class="summary">
+    {{categoryCards}}
+</section>
+
+<main>
+    {{findingsByCategory}}
+</main>
+
+{{ruleAppendix}}
+
+<footer class="report-footer">
+    <p>JAuditor v{{pluginVersion}} · {{scanTimestamp}} · <a
+            href="https://github.com/sagaraggarwal86/JAuditor-jmeter-plugin">github.com/sagaraggarwal86/JAuditor-jmeter-plugin</a>
+    </p>
+    <p class="muted">Static analysis — findings require human validation.</p>
+</footer>
+
+<script>
+    (function () {
+        document.querySelectorAll('table.sortable th').forEach(function (th, idx) {
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', function () {
+                var tbody = th.closest('table').querySelector('tbody');
+                var rows = Array.from(tbody.querySelectorAll('tr'));
+                var asc = th.dataset.sort !== 'asc';
+                rows.sort(function (a, b) {
+                    var at = a.children[idx].innerText.trim();
+                    var bt = b.children[idx].innerText.trim();
+                    return asc ? at.localeCompare(bt) : bt.localeCompare(at);
+                });
+                th.dataset.sort = asc ? 'asc' : 'desc';
+                rows.forEach(function (r) {
+                    tbody.appendChild(r);
+                });
+            });
+        });
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+package io.github.sagaraggarwal86.jmeter.jauditor.engine;
+
+import io.github.sagaraggarwal86.jmeter.jauditor.model.Finding;
+import io.github.sagaraggarwal86.jmeter.jauditor.model.NodePath;
+import io.github.sagaraggarwal86.jmeter.jauditor.model.ScanOutcome;
+import io.github.sagaraggarwal86.jmeter.jauditor.model.ScanResult;
+import io.github.sagaraggarwal86.jmeter.jauditor.rules.Rule;
+import io.github.sagaraggarwal86.jmeter.jauditor.rules.RuleRegistry;
+import io.github.sagaraggarwal86.jmeter.jauditor.util.Clock;
+import io.github.sagaraggarwal86.jmeter.jauditor.util.JAuditorLog;
+import org.apache.jmeter.gui.tree.JMeterTreeModel;
+import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.testelement.TestElement;
+
+import java.lang.ref.WeakReference;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.function.Consumer;
+
+public final class RuleEngine {
+
+    private static final JAuditorLog LOG = JAuditorLog.forClass(RuleEngine.class);
+
+    private RuleEngine() {
+    }
+
+    public static ScanResult scan(
+            JMeterTreeModel tree,
+            Set<String> hiddenRuleIds,
+            String jmxPath,
+            String jmxName,
+            String jmeterVersion,
+            boolean dirty,
+            Clock clock,
+            Consumer<Finding> publish) {
+
+        Instant start = clock.now();
+        ScanStats stats = new ScanStats();
+        Deadline deadline = new Deadline(clock, Duration.ofMillis(ScanLimits.MAX_SCAN_MILLIS));
+        ScanContext ctx = new ScanContext(tree, stats, deadline, clock);
+
+        List<Rule> allRules = RuleRegistry.all();
+        List<Rule> active = new ArrayList<>();
+        List<String> suppressed = new ArrayList<>();
+        for (Rule r : allRules) {
+            if (hiddenRuleIds != null && hiddenRuleIds.contains(r.id())) {
+                suppressed.add(r.id());
+            } else {
+                active.add(r);
+            }
+        }
+
+        List<Finding> findings = new ArrayList<>();
+        Map<Finding, WeakReference<JMeterTreeNode>> nav = new IdentityHashMap<>();
+        JMeterTreeNode root = (JMeterTreeNode) tree.getRoot();
+
+        Map<Class<?>, List<Rule>> rulesByConcrete = new IdentityHashMap<>();
+
+        TreeWalker.WalkResult walk = TreeWalker.walk(root, ctx, (node, idx) -> {
+            TestElement te = node.getTestElement();
+            if (te == null) return;
+            List<Rule> matched = rulesByConcrete.computeIfAbsent(te.getClass(),
+                    cls -> filterMatching(active, cls));
+            for (Rule r : matched) {
+                try {
+                    List<Finding> fs = r.check(node, ctx);
+                    ctx.stats().incRules();
+                    if (fs == null || fs.isEmpty()) continue;
+                    for (Finding f : fs) {
+                        if (findings.size() >= ScanLimits.MAX_FINDINGS) break;
+                        findings.add(f);
+                        nav.put(f, new WeakReference<>(node));
+                        if (publish != null) publish.accept(f);
+                    }
+                    ctx.stats().incFindings(fs.size());
+                } catch (Exception ex) {
+                    LOG.warn("rule {} failed on node {}: {}", r.id(), node.getName(), ex.toString());
+                    NodePath path = ctx.pathFor(node);
+                    Finding f = Finding.ruleFailure(r.id(), r.category(), path, ex);
+                    findings.add(f);
+                    nav.put(f, new WeakReference<>(node));
+                    if (publish != null) publish.accept(f);
+                }
+            }
+        });
+
+        long duration = Duration.between(start, clock.now()).toMillis();
+        ScanOutcome outcome = TreeWalker.mapOutcome(walk.abortReason());
+        LOG.logScanSummary(findings.size(), stats.nodesVisited(), duration, outcome.name());
+
+        return new ScanResult(
+                start,
+                jmxPath,
+                jmxName,
+                jmeterVersion,
+                dirty,
+                stats.nodesVisited(),
+                stats.rulesExecuted(),
+                duration,
+                findings,
+                outcome,
+                suppressed,
+                nav
+        );
+    }
+
+    private static List<Rule> filterMatching(List<Rule> all, Class<?> concrete) {
+        List<Rule> out = new ArrayList<>();
+        for (Rule r : all) {
+            Set<Class<? extends TestElement>> types = r.appliesTo();
+            if (types == null || types.isEmpty()) {
+                out.add(r);
+                continue;
+            }
+            for (Class<? extends TestElement> t : types) {
+                if (t.isAssignableFrom(concrete)) {
+                    out.add(r);
+                    break;
+                }
+            }
+        }
+        return out;
+    }
+}
