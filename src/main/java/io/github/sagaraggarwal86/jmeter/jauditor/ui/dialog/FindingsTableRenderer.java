@@ -23,18 +23,22 @@ public final class FindingsTableRenderer implements TableCellRenderer {
         text.setLayout(new javax.swing.BoxLayout(text, javax.swing.BoxLayout.Y_AXIS));
         text.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
 
+        Font base = UIManager.getFont("Label.font");
+        if (base == null) base = table.getFont();
+
         JLabel title = new JLabel("[" + f.category().name() + "] " + f.title());
-        title.setFont(title.getFont().deriveFont(Font.BOLD));
+        title.setFont(base.deriveFont(Font.BOLD));
         title.setForeground(isSelected ? UIManager.getColor("Table.selectionForeground") : UIManager.getColor("Label.foreground"));
         text.add(title);
 
         JLabel path = new JLabel(f.nodePath().breadcrumb());
-        path.setFont(new Font(Font.MONOSPACED, Font.PLAIN, path.getFont().getSize() - 1));
+        path.setFont(base.deriveFont(Font.PLAIN, Math.max(1f, base.getSize2D() - 1f)));
+        path.setToolTipText(f.nodePath().breadcrumb());
         text.add(path);
 
         if (f.suggestion() != null && !f.suggestion().isBlank()) {
             JLabel suggestion = new JLabel(f.suggestion());
-            suggestion.setFont(suggestion.getFont().deriveFont(Font.ITALIC));
+            suggestion.setFont(base.deriveFont(Font.ITALIC));
             text.add(suggestion);
         }
 

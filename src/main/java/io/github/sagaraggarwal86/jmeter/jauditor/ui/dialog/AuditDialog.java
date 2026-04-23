@@ -3,6 +3,7 @@ package io.github.sagaraggarwal86.jmeter.jauditor.ui.dialog;
 import io.github.sagaraggarwal86.jmeter.jauditor.JAuditorPlugin;
 import io.github.sagaraggarwal86.jmeter.jauditor.export.html.HtmlReportWriter;
 import io.github.sagaraggarwal86.jmeter.jauditor.export.json.JsonReportWriter;
+import io.github.sagaraggarwal86.jmeter.jauditor.model.Category;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.Finding;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.ScanResult;
 import io.github.sagaraggarwal86.jmeter.jauditor.rules.RuleRegistry;
@@ -16,7 +17,10 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.util.JMeterUtils;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,6 +36,8 @@ public final class AuditDialog extends JDialog {
     private static final JAuditorLog LOG = JAuditorLog.forClass(AuditDialog.class);
     private static final DateTimeFormatter FILE_TS =
             DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(java.time.ZoneId.systemDefault());
+    private static final String CARD_TABLE = "TABLE";
+    private static final String CARD_EMPTY = "EMPTY";
     private final HeaderBar header;
     private final KpiCardPanel kpi;
     private final SeverityTabs tabs;
@@ -39,6 +45,9 @@ public final class AuditDialog extends JDialog {
     private final JTable table;
     private final FooterBar footer;
     private final JLabel banner;
+    private final JLabel emptyMessage;
+    private final CardLayout centerCards;
+    private final JPanel centerPanel;
     private DialogState state = DialogState.IDLE;
     private ScanWorker worker;
     private ScanResult lastResult;
@@ -58,11 +67,24 @@ public final class AuditDialog extends JDialog {
         tabs.setFilterListener(f -> {
             model.setFilter(f);
             tabs.updateCounts(model);
+            updateEmptyState();
+        });
+        kpi.setSelectionListener(cats -> {
+            model.setAllowedCategories(cats);
+            tabs.updateCounts(model);
+            updateEmptyState();
         });
         table = new JTable(model);
         table.setTableHeader(null);
         table.setShowGrid(false);
+        table.setToolTipText("Double-click or Enter to navigate to the element");
         table.getColumnModel().getColumn(0).setCellRenderer(new FindingsTableRenderer());
+        model.addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                updateEmptyState();
+            }
+        });
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -84,6 +106,18 @@ public final class AuditDialog extends JDialog {
         banner.setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 12));
         banner.setVisible(false);
 
+        emptyMessage = new JLabel("Click Rescan to audit the current test plan.", SwingConstants.CENTER);
+        emptyMessage.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        Font base = UIManager.getFont("Label.font");
+        if (base != null) emptyMessage.setFont(base);
+
+        JScrollPane tableScroll = new JScrollPane(table);
+        tableScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        centerCards = new CardLayout();
+        centerPanel = new JPanel(centerCards);
+        centerPanel.add(tableScroll, CARD_TABLE);
+        centerPanel.add(emptyMessage, CARD_EMPTY);
+
         JPanel top = new JPanel(new BorderLayout());
         top.add(header, BorderLayout.NORTH);
         JPanel mid = new JPanel(new BorderLayout());
@@ -94,10 +128,11 @@ public final class AuditDialog extends JDialog {
 
         setLayout(new BorderLayout());
         add(top, BorderLayout.NORTH);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
         add(footer, BorderLayout.SOUTH);
 
         bindKeys();
+        updateEmptyState();
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
@@ -143,6 +178,7 @@ public final class AuditDialog extends JDialog {
         tabs.resetToAll();
         tabs.updateCounts(model);
         kpi.update(java.util.List.of());
+        kpi.resetSelection();
         banner.setVisible(false);
 
         worker = new ScanWorker(tree, JAuditorSession.get().hiddenRuleIds(), path, name,
@@ -194,6 +230,28 @@ public final class AuditDialog extends JDialog {
     private void setState(DialogState s) {
         this.state = s;
         header.applyState(s, lastResult != null && !lastResult.findings().isEmpty());
+        updateEmptyState();
+    }
+
+    private void updateEmptyState() {
+        if (model.getRowCount() > 0) {
+            centerCards.show(centerPanel, CARD_TABLE);
+            return;
+        }
+        String msg;
+        if (state == DialogState.SCANNING) {
+            msg = "Scanning…";
+        } else if (state == DialogState.CANCELLING) {
+            msg = "Cancelling…";
+        } else if (lastResult == null) {
+            msg = "Click Rescan to audit the current test plan.";
+        } else if (lastResult.findings().isEmpty()) {
+            msg = "No findings. Your test plan passed all 25 audit rules.";
+        } else {
+            msg = "No findings match the current filter. Press 1 to show all severities, or re-enable categories above.";
+        }
+        emptyMessage.setText(msg);
+        centerCards.show(centerPanel, CARD_EMPTY);
     }
 
     private void onRescan() {
@@ -296,6 +354,35 @@ public final class AuditDialog extends JDialog {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 navigateSelected();
+            }
+        });
+        bindSeverity(im, am, KeyEvent.VK_1, "sevAll", FindingsTableModel.Filter.ALL);
+        bindSeverity(im, am, KeyEvent.VK_2, "sevError", FindingsTableModel.Filter.ERROR);
+        bindSeverity(im, am, KeyEvent.VK_3, "sevWarn", FindingsTableModel.Filter.WARN);
+        bindSeverity(im, am, KeyEvent.VK_4, "sevInfo", FindingsTableModel.Filter.INFO);
+        Category[] cats = Category.values();
+        for (int i = 0; i < cats.length; i++) {
+            bindCategory(im, am, KeyEvent.VK_1 + i, "cat" + i, cats[i]);
+        }
+    }
+
+    private void bindSeverity(InputMap im, ActionMap am, int keyCode, String name,
+                              FindingsTableModel.Filter f) {
+        im.put(KeyStroke.getKeyStroke(keyCode, 0), name);
+        am.put(name, new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                tabs.selectFilter(f);
+            }
+        });
+    }
+
+    private void bindCategory(InputMap im, ActionMap am, int keyCode, String name, Category c) {
+        im.put(KeyStroke.getKeyStroke(keyCode, InputEvent.ALT_DOWN_MASK), name);
+        am.put(name, new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                kpi.toggleCategory(c);
             }
         });
     }

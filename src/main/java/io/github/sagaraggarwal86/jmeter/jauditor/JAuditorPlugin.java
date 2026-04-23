@@ -15,11 +15,16 @@ public final class JAuditorPlugin {
     }
 
     public static String version() {
-        return VERSION.getProperty("version", "0.0.0");
+        String v = VERSION.getProperty("version", "");
+        if (!v.isEmpty() && !v.contains("${")) return v;
+        String manifest = JAuditorPlugin.class.getPackage().getImplementationVersion();
+        if (manifest != null && !manifest.isBlank()) return manifest;
+        return "dev";
     }
 
     public static String buildTimestamp() {
-        return VERSION.getProperty("buildTimestamp", "");
+        String t = VERSION.getProperty("buildTimestamp", "");
+        return (t.contains("${")) ? "" : t;
     }
 
     private static Properties load() {

@@ -1,12 +1,15 @@
 package io.github.sagaraggarwal86.jmeter.jauditor.ui.dialog;
 
+import io.github.sagaraggarwal86.jmeter.jauditor.model.Category;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.Finding;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.Severity;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public final class FindingsTableModel extends AbstractTableModel {
 
@@ -16,6 +19,7 @@ public final class FindingsTableModel extends AbstractTableModel {
             .thenComparingInt(Finding::treeDepth);
     private final List<Finding> all = new ArrayList<>();
     private final List<Finding> view = new ArrayList<>();
+    private final EnumSet<Category> allowedCategories = EnumSet.allOf(Category.class);
     private Filter filter = Filter.ALL;
 
     private static boolean severityMatches(Severity s, Filter f) {
@@ -49,6 +53,13 @@ public final class FindingsTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
+    public void setAllowedCategories(Set<Category> cats) {
+        allowedCategories.clear();
+        allowedCategories.addAll(cats);
+        rebuildView();
+        fireTableDataChanged();
+    }
+
     public Finding at(int row) {
         return view.get(row);
     }
@@ -74,16 +85,17 @@ public final class FindingsTableModel extends AbstractTableModel {
     }
 
     public long countAll() {
-        return all.size();
+        return all.stream().filter(f -> allowedCategories.contains(f.category())).count();
     }
 
     public long countSeverity(Severity s) {
-        return all.stream().filter(f -> f.severity() == s).count();
+        return all.stream().filter(f -> f.severity() == s && allowedCategories.contains(f.category())).count();
     }
 
     private void rebuildView() {
         view.clear();
         for (Finding f : all) {
+            if (!allowedCategories.contains(f.category())) continue;
             if (filter == Filter.ALL || severityMatches(f.severity(), filter)) view.add(f);
         }
     }

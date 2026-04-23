@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Out-File *)"
+      "PowerShell(Out-File *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Test-Path *)",
+      "Bash(mvn clean *)",
+      "PowerShell(mvn clean *)",
+      "PowerShell(Get-Item *)",
+      "PowerShell(Get-Item target\\\\jauditor-jmeter-plugin-0.1.0.jar | Select-Object Name, @{Name='KB';Expression={[math]::Round\\($_.Length / 1KB, 1\\)}})",
+      "PowerShell(mvn verify *)"
     ]
   }
 }

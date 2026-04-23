@@ -8,9 +8,7 @@ public final class HeaderBar extends JPanel {
     private final JLabel title;
     private final JButton rescanBtn;
     private final JButton cancelBtn;
-    private final JButton exportHtmlBtn;
-    private final JButton exportDropdownBtn;
-    private final JMenuItem exportJsonItem;
+    private final JButton exportBtn;
 
     public HeaderBar(Runnable onRescan, Runnable onCancel, Runnable onExportHtml, Runnable onExportJson) {
         setLayout(new BorderLayout());
@@ -22,22 +20,22 @@ public final class HeaderBar extends JPanel {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         rescanBtn = new JButton("Rescan");
         cancelBtn = new JButton("Cancel");
-        exportHtmlBtn = new JButton("Export HTML");
-        exportDropdownBtn = new JButton("▾");
+        exportBtn = new JButton("Export ▾");
         rescanBtn.addActionListener(e -> onRescan.run());
         cancelBtn.addActionListener(e -> onCancel.run());
-        exportHtmlBtn.addActionListener(e -> onExportHtml.run());
 
         JPopupMenu menu = new JPopupMenu();
-        exportJsonItem = new JMenuItem("Export JSON…");
-        exportJsonItem.addActionListener(e -> onExportJson.run());
-        menu.add(exportJsonItem);
-        exportDropdownBtn.addActionListener(e -> menu.show(exportDropdownBtn, 0, exportDropdownBtn.getHeight()));
+        JMenuItem htmlItem = new JMenuItem("Export HTML…");
+        htmlItem.addActionListener(e -> onExportHtml.run());
+        JMenuItem jsonItem = new JMenuItem("Export JSON…");
+        jsonItem.addActionListener(e -> onExportJson.run());
+        menu.add(htmlItem);
+        menu.add(jsonItem);
+        exportBtn.addActionListener(e -> menu.show(exportBtn, 0, exportBtn.getHeight()));
 
         right.add(rescanBtn);
         right.add(cancelBtn);
-        right.add(exportHtmlBtn);
-        right.add(exportDropdownBtn);
+        right.add(exportBtn);
         add(right, BorderLayout.EAST);
     }
 
@@ -52,21 +50,18 @@ public final class HeaderBar extends JPanel {
                 rescanBtn.setVisible(true);
                 rescanBtn.setEnabled(true);
                 cancelBtn.setVisible(false);
-                exportHtmlBtn.setEnabled(hasFindings);
-                exportDropdownBtn.setEnabled(hasFindings);
+                exportBtn.setEnabled(hasFindings);
             }
             case SCANNING -> {
                 rescanBtn.setVisible(false);
                 cancelBtn.setVisible(true);
                 cancelBtn.setEnabled(true);
-                exportHtmlBtn.setEnabled(false);
-                exportDropdownBtn.setEnabled(false);
+                exportBtn.setEnabled(false);
             }
             case CANCELLING -> {
                 rescanBtn.setEnabled(false);
                 cancelBtn.setEnabled(false);
-                exportHtmlBtn.setEnabled(false);
-                exportDropdownBtn.setEnabled(false);
+                exportBtn.setEnabled(false);
             }
         }
     }

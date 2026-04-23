@@ -41,6 +41,16 @@ public final class SeverityTabs extends JPanel {
         all.setSelected(true);
     }
 
+    public void selectFilter(FindingsTableModel.Filter f) {
+        JToggleButton target = switch (f) {
+            case ALL -> all;
+            case ERROR -> error;
+            case WARN -> warn;
+            case INFO -> info;
+        };
+        target.doClick();
+    }
+
     public void updateCounts(FindingsTableModel model) {
         all.setText("All (" + model.countAll() + ")");
         error.setText("Error (" + model.countSeverity(Severity.ERROR) + ")");
