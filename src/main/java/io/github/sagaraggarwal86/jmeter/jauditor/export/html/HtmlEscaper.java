@@ -1,12 +1,6 @@
 package io.github.sagaraggarwal86.jmeter.jauditor.export.html;
 
-/**
- * HTML entity escaper for the five characters that can break out of HTML text or
- * attribute contexts: {@code <}, {@code >}, {@code &}, {@code "}, {@code '}. Used
- * defensively around every piece of user-controlled text emitted by
- * {@link HtmlReportWriter} — rule ids, node paths, finding titles/descriptions,
- * suggestions, and jmx file names.
- */
+/** Escapes the five HTML-breaking characters: {@code < > & " '}. */
 public final class HtmlEscaper {
 
     private HtmlEscaper() {

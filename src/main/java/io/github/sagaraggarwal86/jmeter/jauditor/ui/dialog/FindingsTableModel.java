@@ -11,7 +11,7 @@ public final class FindingsTableModel extends AbstractTableModel {
 
     public static final Comparator<Finding> ORDER = Comparator
             .comparingInt((Finding f) -> f.category().ordinal())
-            .thenComparingInt(f -> severityRank(f.severity()))
+            .thenComparingInt(f -> f.severity().ordinal())
             .thenComparingInt(Finding::treeDepth);
     private final List<Finding> all = new ArrayList<>();
     private final List<Finding> view = new ArrayList<>();
@@ -24,14 +24,6 @@ public final class FindingsTableModel extends AbstractTableModel {
             case WARN -> s == Severity.WARN;
             case INFO -> s == Severity.INFO;
             case ALL -> true;
-        };
-    }
-
-    private static int severityRank(Severity s) {
-        return switch (s) {
-            case ERROR -> 0;
-            case WARN -> 1;
-            case INFO -> 2;
         };
     }
 

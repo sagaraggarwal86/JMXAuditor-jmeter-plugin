@@ -9,11 +9,7 @@ import org.apache.jmeter.testelement.TestElement;
 import java.util.*;
 import java.util.function.Supplier;
 
-/**
- * Per-scan shared state. Memo keys are lowercase noun phrases, no separators:
- * {@code httpSamplers}, {@code threadGroups}, {@code anyCookieManager}, {@code udvElements},
- * {@code headerManagers}, {@code assertionsByParent}, {@code timersByThreadGroup}.
- */
+/** Per-scan shared state: memo map, node→{@link NodePath} cache, and subtree-type cache. */
 public final class ScanContext {
 
     private final JMeterTreeModel tree;

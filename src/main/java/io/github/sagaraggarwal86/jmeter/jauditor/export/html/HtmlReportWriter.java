@@ -4,7 +4,6 @@ import io.github.sagaraggarwal86.jmeter.jauditor.export.ReportAggregates;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.Category;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.Finding;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.ScanResult;
-import io.github.sagaraggarwal86.jmeter.jauditor.model.Severity;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,23 +12,10 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
-/**
- * Writes the single-file HTML report: token substitution on {@code report-template.html},
- * styled via inlined {@code report-styles.css}, Excel export powered by an inlined
- * xlsx-js-style bundle. Findings that share a rule id within a category panel collapse
- * into a {@code grp-head} row plus hidden {@code grp-member} rows once the count hits
- * {@link #GROUP_THRESHOLD} (currently 3).
- */
+/** Writes the single-file HTML report via token substitution on {@code report-template.html}. */
 public final class HtmlReportWriter {
 
     private static final DateTimeFormatter DATE_FMT =
@@ -81,7 +67,7 @@ public final class HtmlReportWriter {
         for (Category c : Category.values()) {
             List<Finding> list = agg.findingsByCategory().get(c);
             if (list.isEmpty()) continue;
-            sb.append(navButton(c.name().toLowerCase(Locale.ROOT), cap(c.name()), list.size(), false));
+            sb.append(navButton(c.asJson(), c.displayName(), list.size(), false));
         }
         return sb.toString();
     }
@@ -122,15 +108,16 @@ public final class HtmlReportWriter {
         for (Category c : Category.values()) {
             List<Finding> list = agg.findingsByCategory().get(c);
             if (list.isEmpty()) continue;
-            String slug = c.name().toLowerCase(Locale.ROOT);
+            String slug = c.asJson();
+            String name = c.displayName();
             String panelId = "panel-" + slug;
             String tabId = "tab-" + slug;
             String tableId = "t" + (tableIdx++);
             sb.append("<div class=\"panel\" id=\"").append(panelId)
                     .append("\" role=\"tabpanel\" aria-labelledby=\"").append(tabId)
-                    .append("\" data-title=\"").append(HtmlEscaper.escape(cap(c.name()))).append("\">")
+                    .append("\" data-title=\"").append(HtmlEscaper.escape(name)).append("\">")
                     .append("<h2 data-category=\"").append(slug).append("\">")
-                    .append(cap(c.name())).append(" <span class=\"muted\">(").append(list.size()).append(")</span></h2>")
+                    .append(name).append(" <span class=\"muted\">(").append(list.size()).append(")</span></h2>")
                     .append(renderFindingsTable(list, tableId))
                     .append("</div>");
         }
@@ -141,8 +128,8 @@ public final class HtmlReportWriter {
         StringBuilder sb = new StringBuilder("<div class=\"cards\">");
         for (Category c : Category.values()) {
             int count = agg.byCategory().getOrDefault(c, 0);
-            String slug = c.name().toLowerCase(Locale.ROOT);
-            String name = cap(c.name());
+            String slug = c.asJson();
+            String name = c.displayName();
             if (count > 0) {
                 sb.append("<button type=\"button\" class=\"card card-link\" data-category=\"").append(slug)
                         .append("\" data-panel=\"panel-").append(slug).append("\"")
@@ -166,7 +153,7 @@ public final class HtmlReportWriter {
     private static String renderFindingsTable(List<Finding> list, String tableId) {
         List<Finding> sorted = new ArrayList<>(list);
         sorted.sort(Comparator
-                .comparingInt((Finding f) -> severitySortKey(f.severity()))
+                .comparingInt((Finding f) -> f.severity().ordinal())
                 .thenComparing(Finding::ruleId)
                 .thenComparingInt(f -> f.nodePath().depth()));
 
@@ -224,9 +211,9 @@ public final class HtmlReportWriter {
 
     private static String renderFindingCells(Finding f, boolean isGroupHead, int groupSize) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<td data-sort=\"").append(severitySortKey(f.severity())).append("\">")
+        sb.append("<td data-sort=\"").append(f.severity().ordinal()).append("\">")
                 .append("<span class=\"badge ").append(f.severity().asJson()).append("\">")
-                .append(severityDisplay(f.severity())).append("</span></td>");
+                .append(f.severity().displayName()).append("</span></td>");
         sb.append("<td><code>").append(HtmlEscaper.escape(f.ruleId())).append("</code></td>");
         sb.append("<td>");
         if (isGroupHead) {
@@ -273,13 +260,12 @@ public final class HtmlReportWriter {
                 .append("<th aria-sort=\"none\">Status</th>")
                 .append("</tr></thead><tbody data-body-id=\"").append(tableId).append("\">");
         for (ReportAggregates.RuleRow row : agg.rules()) {
-            String slug = row.category().name().toLowerCase(Locale.ROOT);
             sb.append("<tr>")
                     .append("<td><code>").append(HtmlEscaper.escape(row.id())).append("</code></td>")
-                    .append("<td><span class=\"cat-dot\" data-category=\"").append(slug).append("\" aria-hidden=\"true\"></span>")
-                    .append(cap(row.category().name())).append("</td>")
-                    .append("<td data-sort=\"").append(severitySortKey(row.severity())).append("\"><span class=\"badge ")
-                    .append(row.severity().asJson()).append("\">").append(severityDisplay(row.severity())).append("</span></td>")
+                    .append("<td><span class=\"cat-dot\" data-category=\"").append(row.category().asJson()).append("\" aria-hidden=\"true\"></span>")
+                    .append(row.category().displayName()).append("</td>")
+                    .append("<td data-sort=\"").append(row.severity().ordinal()).append("\"><span class=\"badge ")
+                    .append(row.severity().asJson()).append("\">").append(row.severity().displayName()).append("</span></td>")
                     .append("<td>").append(HtmlEscaper.escape(row.description())).append("</td>")
                     .append("<td>").append(row.suppressed() ? "suppressed" : "active").append("</td>")
                     .append("</tr>");
@@ -288,25 +274,4 @@ public final class HtmlReportWriter {
         return sb.toString();
     }
 
-    // ─── Misc helpers ─────────────────────────────────────────
-
-    private static String cap(String s) {
-        return s.charAt(0) + s.substring(1).toLowerCase(Locale.ROOT);
-    }
-
-    private static String severityDisplay(Severity s) {
-        return switch (s) {
-            case ERROR -> "High";
-            case WARN -> "Medium";
-            case INFO -> "Low";
-        };
-    }
-
-    private static int severitySortKey(Severity s) {
-        return switch (s) {
-            case ERROR -> 1;
-            case WARN -> 2;
-            case INFO -> 3;
-        };
-    }
 }

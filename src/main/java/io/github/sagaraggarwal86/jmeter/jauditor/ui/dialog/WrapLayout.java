@@ -1,10 +1,6 @@
 package io.github.sagaraggarwal86.jmeter.jauditor.ui.dialog;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Insets;
+import java.awt.*;
 
 /**
  * FlowLayout that reports the correct preferred size when its content wraps, so the
@@ -16,6 +12,12 @@ final class WrapLayout extends FlowLayout {
 
     WrapLayout(int align, int hgap, int vgap) {
         super(align, hgap, vgap);
+    }
+
+    private static void addRow(Dimension dim, int rowWidth, int rowHeight, int vgap) {
+        dim.width = Math.max(dim.width, rowWidth);
+        if (dim.height > 0) dim.height += vgap;
+        dim.height += rowHeight;
     }
 
     @Override
@@ -70,11 +72,5 @@ final class WrapLayout extends FlowLayout {
             dim.height += insets.top + insets.bottom + vgap * 2;
             return dim;
         }
-    }
-
-    private static void addRow(Dimension dim, int rowWidth, int rowHeight, int vgap) {
-        dim.width = Math.max(dim.width, rowWidth);
-        if (dim.height > 0) dim.height += vgap;
-        dim.height += rowHeight;
     }
 }

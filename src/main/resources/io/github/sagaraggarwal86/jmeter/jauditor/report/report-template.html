@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
     <title>{{title}}</title>
     <style>/*__STYLES__*/</style>
 </head>
@@ -18,13 +18,17 @@
             </div>
         </div>
         <div class="header-actions">
-            <button type="button" id="themeToggle" class="hdr-btn" onclick="toggleTheme()" aria-label="Toggle theme">&#x1F319;&nbsp;Dark Mode</button>
-            <button type="button" id="excelExport" class="hdr-btn exp-btn" onclick="exportExcel()" aria-label="Export to Excel">&#x1F4E5;&nbsp;Export Excel</button>
+            <button aria-label="Toggle theme" class="hdr-btn" id="themeToggle" onclick="toggleTheme()" type="button">
+                &#x1F319;&nbsp;Dark Mode
+            </button>
+            <button aria-label="Export to Excel" class="hdr-btn exp-btn" id="excelExport" onclick="exportExcel()"
+                    type="button">&#x1F4E5;&nbsp;Export Excel
+            </button>
         </div>
     </div>
     <div class="banner-zone">{{headerBanners}}</div>
     <div class="body-row">
-        <nav class="sidebar" role="tablist" aria-label="Report sections">
+        <nav aria-label="Report sections" class="sidebar" role="tablist">
             {{navTabs}}
         </nav>
         <div class="main-col">
@@ -52,7 +56,10 @@
                 p.classList.toggle('active', p.id === targetId);
             });
             if (history && history.replaceState) {
-                try { history.replaceState(null, '', '#' + targetId); } catch (e) { /* ignore */ }
+                try {
+                    history.replaceState(null, '', '#' + targetId);
+                } catch (e) { /* ignore */
+                }
             }
         }
 
@@ -127,7 +134,9 @@
                 return r.tagName === 'TR';
             });
             // Anchor rows = grp-head rows + non-member rows. grp-member rows follow their head.
-            var anchorRows = allRows.filter(function (r) { return !r.classList.contains('grp-member'); });
+            var anchorRows = allRows.filter(function (r) {
+                return !r.classList.contains('grp-member');
+            });
             var page = 0;
             var sortCol = -1, sortAsc = true;
             var query = '';
@@ -169,7 +178,9 @@
                 var end = start + limit;
 
                 // hide all first
-                allRows.forEach(function (r) { r.style.display = 'none'; });
+                allRows.forEach(function (r) {
+                    r.style.display = 'none';
+                });
 
                 visibleAnchors.forEach(function (r, i) {
                     if (i >= start && i < end) {
@@ -220,7 +231,9 @@
                         // Re-append anchors in sorted order, each followed by its members.
                         anchorRows.forEach(function (r) {
                             tbody.appendChild(r);
-                            membersOf(r).forEach(function (m) { tbody.appendChild(m); });
+                            membersOf(r).forEach(function (m) {
+                                tbody.appendChild(m);
+                            });
                         });
                         page = 0;
                         render();
@@ -271,7 +284,9 @@
                     });
                     anchorRows.forEach(function (r) {
                         tbody.appendChild(r);
-                        membersOf(r).forEach(function (m) { tbody.appendChild(m); });
+                        membersOf(r).forEach(function (m) {
+                            tbody.appendChild(m);
+                        });
                     });
                 }
             }
@@ -467,7 +482,9 @@
                     if (h.prop === 'display') h.el.style.display = 'none';
                     else h.el.setAttribute('hidden', '');
                 });
-                openedDetails.forEach(function (d) { d.open = false; });
+                openedDetails.forEach(function (d) {
+                    d.open = false;
+                });
             }
         }
 
@@ -540,6 +557,7 @@
                 alert('Excel export failed: ' + (e && e.message ? e.message : e));
             }
         }
+
         window.exportExcel = exportExcel;
 
         if (typeof XLSX === 'undefined') {

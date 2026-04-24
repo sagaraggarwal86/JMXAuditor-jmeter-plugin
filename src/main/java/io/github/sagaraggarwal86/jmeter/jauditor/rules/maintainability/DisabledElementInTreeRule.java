@@ -40,7 +40,7 @@ public final class DisabledElementInTreeRule extends AbstractRule {
     @Override
     public List<Finding> check(JMeterTreeNode node, ScanContext ctx) {
         TestElement te = node.getTestElement();
-        if (te == null || te.isEnabled()) return List.of();
+        if (te.isEnabled()) return List.of();
         // Skip the root test plan if somehow flagged
         if (node.getParent() == null) return List.of();
         return List.of(make(ctx.pathFor(node),

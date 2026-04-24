@@ -28,7 +28,8 @@ Medium, Low); click any of the six category buttons to toggle that category in o
 
 Export:
 
-- **Export HTML** — single self-contained report for PR attachments or archival. Inside the report, an **Export Excel** toolbar button writes a styled `.xlsx` with one sheet per category, plus a Rule Reference sheet.
+- **Export HTML** — single self-contained report for PR attachments or archival. Inside the report, an **Export Excel**
+  toolbar button writes a styled `.xlsx` with one sheet per category, plus a Rule Reference sheet.
 - **Export JSON** — machine-readable findings (schema v1.0) for downstream tools.
 
 ## 3. The 25 rules

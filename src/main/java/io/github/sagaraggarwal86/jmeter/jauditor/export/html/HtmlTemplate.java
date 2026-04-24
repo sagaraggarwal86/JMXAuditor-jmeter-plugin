@@ -5,13 +5,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-/**
- * Loads the HTML skeleton, inline CSS, and inline xlsx-js-style bundle from the classpath
- * and performs string-based token substitution. Sentinels use a double-underscore form
- * to avoid collisions with legitimate block comments; per-token markers use the
- * Mustache-ish {@code {{name}}} form. All values are passed through {@link HtmlEscaper}
- * at the writer layer before reaching this class.
- */
 public final class HtmlTemplate {
 
     private static final String BASE = "/io/github/sagaraggarwal86/jmeter/jauditor/report/";

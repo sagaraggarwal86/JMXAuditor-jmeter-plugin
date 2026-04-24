@@ -417,12 +417,29 @@ h2 {
     margin: 0 0 16px;
 }
 
-h2[data-category="correctness"] { border-left-color: var(--cat-correctness); }
-h2[data-category="security"] { border-left-color: var(--cat-security); }
-h2[data-category="scalability"] { border-left-color: var(--cat-scalability); }
-h2[data-category="realism"] { border-left-color: var(--cat-realism); }
-h2[data-category="maintainability"] { border-left-color: var(--cat-maintainability); }
-h2[data-category="observability"] { border-left-color: var(--cat-observability); }
+h2[data-category="correctness"] {
+    border-left-color: var(--cat-correctness);
+}
+
+h2[data-category="security"] {
+    border-left-color: var(--cat-security);
+}
+
+h2[data-category="scalability"] {
+    border-left-color: var(--cat-scalability);
+}
+
+h2[data-category="realism"] {
+    border-left-color: var(--cat-realism);
+}
+
+h2[data-category="maintainability"] {
+    border-left-color: var(--cat-maintainability);
+}
+
+h2[data-category="observability"] {
+    border-left-color: var(--cat-observability);
+}
 
 .muted {
     color: var(--c-text-tertiary);
@@ -461,12 +478,29 @@ code {
     display: block;
 }
 
-.card[data-category="correctness"] { border-left-color: var(--cat-correctness); }
-.card[data-category="security"] { border-left-color: var(--cat-security); }
-.card[data-category="scalability"] { border-left-color: var(--cat-scalability); }
-.card[data-category="realism"] { border-left-color: var(--cat-realism); }
-.card[data-category="maintainability"] { border-left-color: var(--cat-maintainability); }
-.card[data-category="observability"] { border-left-color: var(--cat-observability); }
+.card[data-category="correctness"] {
+    border-left-color: var(--cat-correctness);
+}
+
+.card[data-category="security"] {
+    border-left-color: var(--cat-security);
+}
+
+.card[data-category="scalability"] {
+    border-left-color: var(--cat-scalability);
+}
+
+.card[data-category="realism"] {
+    border-left-color: var(--cat-realism);
+}
+
+.card[data-category="maintainability"] {
+    border-left-color: var(--cat-maintainability);
+}
+
+.card[data-category="observability"] {
+    border-left-color: var(--cat-observability);
+}
 
 .card.card-empty {
     opacity: 0.55;
@@ -802,12 +836,29 @@ table.rules td code {
     background: var(--c-border-secondary);
 }
 
-.cat-dot[data-category="correctness"] { background: var(--cat-correctness); }
-.cat-dot[data-category="security"] { background: var(--cat-security); }
-.cat-dot[data-category="scalability"] { background: var(--cat-scalability); }
-.cat-dot[data-category="realism"] { background: var(--cat-realism); }
-.cat-dot[data-category="maintainability"] { background: var(--cat-maintainability); }
-.cat-dot[data-category="observability"] { background: var(--cat-observability); }
+.cat-dot[data-category="correctness"] {
+    background: var(--cat-correctness);
+}
+
+.cat-dot[data-category="security"] {
+    background: var(--cat-security);
+}
+
+.cat-dot[data-category="scalability"] {
+    background: var(--cat-scalability);
+}
+
+.cat-dot[data-category="realism"] {
+    background: var(--cat-realism);
+}
+
+.cat-dot[data-category="maintainability"] {
+    background: var(--cat-maintainability);
+}
+
+.cat-dot[data-category="observability"] {
+    background: var(--cat-observability);
+}
 
 /* ── Severity badges ────────────────────────────────────── */
 .badge {

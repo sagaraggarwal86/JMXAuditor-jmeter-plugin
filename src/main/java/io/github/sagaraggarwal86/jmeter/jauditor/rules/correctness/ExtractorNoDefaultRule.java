@@ -48,7 +48,7 @@ public final class ExtractorNoDefaultRule extends AbstractRule {
                   : "RegexExtractor.default";
         if (!propBlank(te, defKey)) return List.of();
         // "default_empty_value" is a boolean flag — "assign empty string on no-match" — not a string value.
-        if (te instanceof RegexExtractor    && propBool(te, "RegexExtractor.default_empty_value"))    return List.of();
+        if (te instanceof RegexExtractor && propBool(te, "RegexExtractor.default_empty_value")) return List.of();
         if (te instanceof BoundaryExtractor && propBool(te, "BoundaryExtractor.default_empty_value")) return List.of();
         return List.of(make(ctx.pathFor(node),
                 "Extractor missing default value",

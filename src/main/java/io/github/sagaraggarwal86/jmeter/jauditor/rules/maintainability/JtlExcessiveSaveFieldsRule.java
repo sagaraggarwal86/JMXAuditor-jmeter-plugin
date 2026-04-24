@@ -47,7 +47,6 @@ public final class JtlExcessiveSaveFieldsRule extends AbstractRule {
     @Override
     public List<Finding> check(JMeterTreeNode node, ScanContext ctx) {
         TestElement te = node.getTestElement();
-        if (te == null) return List.of();
         List<String> enabled = new ArrayList<>();
         PropertyIterator it = te.propertyIterator();
         while (it.hasNext()) {

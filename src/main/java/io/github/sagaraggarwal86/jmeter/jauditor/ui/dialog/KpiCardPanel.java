@@ -6,11 +6,7 @@ import io.github.sagaraggarwal86.jmeter.jauditor.ui.theme.ThemeColors;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 public final class KpiCardPanel extends JPanel {
@@ -31,11 +27,7 @@ public final class KpiCardPanel extends JPanel {
     }
 
     private static String labelFor(Category c, int count) {
-        return capitalize(c.name()) + " (" + count + ")";
-    }
-
-    private static String capitalize(String s) {
-        return s.charAt(0) + s.substring(1).toLowerCase(Locale.ROOT);
+        return c.displayName() + " (" + count + ")";
     }
 
     private static Font baseLabelFont(JComponent fallback) {
@@ -92,7 +84,7 @@ public final class KpiCardPanel extends JPanel {
         btn.setIconTextGap(6);
         btn.setFont(baseLabelFont(btn));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.getAccessibleContext().setAccessibleName(capitalize(c.name()) + " filter");
+        btn.getAccessibleContext().setAccessibleName(c.displayName() + " filter");
         updateAccessibleDescription(btn, true, 0);
 
         btn.addActionListener(e -> {
