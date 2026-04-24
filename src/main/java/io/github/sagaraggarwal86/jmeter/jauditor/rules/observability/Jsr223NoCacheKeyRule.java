@@ -44,8 +44,8 @@ public final class Jsr223NoCacheKeyRule extends AbstractRule {
         if (!cls.contains("JSR223")) return List.of();
         String key = propString(te, "cacheKey");
         String script = propString(te, "script");
-        if (script == null || script.isBlank()) return List.of();
-        if (key != null && !key.isBlank()) return List.of();
+        if (script.isBlank()) return List.of();
+        if (!key.isBlank()) return List.of();
         return List.of(make(ctx.pathFor(node),
                 "JSR223 script missing cache key",
                 "This JSR223 element has a script body but no Cache Key set. Every time the element fires (potentially thousands of times per second under load), Groovy compiles the script from scratch — a process that takes several milliseconds and allocates a lot of short-lived objects. Those milliseconds add up into real latency on top of the actual request, and the allocations pressure the garbage collector, which sometimes kicks in mid-test and creates artificial response-time spikes that look like the system under test misbehaving.",

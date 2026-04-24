@@ -19,6 +19,13 @@ import io.github.sagaraggarwal86.jmeter.jauditor.rules.security.PlaintextTokenIn
 
 import java.util.List;
 
+/**
+ * Immutable list of the 25 catalogue rules in PRD §7 order. Whole-tree rules appear
+ * first within each category so their memo keys ({@code anyHttpSampler},
+ * {@code anyCookieManager}) are populated before dependent per-node rules run.
+ * Count (25), uniqueness, UPPER_SNAKE_CASE IDs, and per-category counts
+ * (4 / 3 / 5 / 3 / 6 / 4) are enforced by {@code RuleRegistryTest}.
+ */
 public final class RuleRegistry {
 
     private static final List<Rule> RULES = List.of(

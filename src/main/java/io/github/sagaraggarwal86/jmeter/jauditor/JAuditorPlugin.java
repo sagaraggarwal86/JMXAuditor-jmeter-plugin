@@ -4,6 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Plugin identity constants and version resolution. {@link #version()} prefers the
+ * Maven-filtered {@code version.properties} entry; falls back to the JAR manifest
+ * {@code Implementation-Version}; falls back to {@code "dev"}. The fallback chain
+ * defends against the unfiltered resource (which still contains the literal
+ * {@code ${project.version}} token) reaching the UI when running from an IDE
+ * without a full Maven build.
+ */
 public final class JAuditorPlugin {
 
     public static final String NAME = "JAuditor";

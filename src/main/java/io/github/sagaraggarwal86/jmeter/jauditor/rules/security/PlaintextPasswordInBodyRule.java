@@ -5,13 +5,11 @@ import io.github.sagaraggarwal86.jmeter.jauditor.model.Category;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.Finding;
 import io.github.sagaraggarwal86.jmeter.jauditor.model.Severity;
 import io.github.sagaraggarwal86.jmeter.jauditor.rules.AbstractRule;
+import org.apache.jmeter.config.Argument;
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.protocol.http.sampler.HTTPSamplerBase;
-import org.apache.jmeter.protocol.http.util.HTTPArgument;
 import org.apache.jmeter.testelement.TestElement;
-import org.apache.jmeter.testelement.property.CollectionProperty;
-import org.apache.jmeter.testelement.property.JMeterProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +53,7 @@ public final class PlaintextPasswordInBodyRule extends AbstractRule {
         Arguments args = http.getArguments();
         if (args == null) return out;
         for (int i = 0; i < args.getArgumentCount(); i++) {
-            HTTPArgument a = (HTTPArgument) args.getArgument(i);
+            Argument a = args.getArgument(i);
             String name = a.getName();
             String val = a.getValue();
             if (name == null || val == null) continue;
@@ -67,11 +65,6 @@ public final class PlaintextPasswordInBodyRule extends AbstractRule {
                     "Plaintext credential in request body",
                     "The HTTP request sends the field '" + name + "' with a hard-coded value. That value lives directly inside the .jmx file, so anyone who opens the test plan or checks it into version control can read the real credential. Passwords and tokens written into .jmx files are a common source of accidental leaks, especially when the file ends up in a CI log or a screenshot. Value redacted to " + io.github.sagaraggarwal86.jmeter.jauditor.util.JAuditorLog.redact(val) + " — JAuditor never prints credential contents.",
                     "Move the actual value out of the .jmx. Typical options: load it from a CSV file at runtime (useful when each thread needs a different credential), read it from an environment variable using ${__env(NAME)} inside a User Defined Variables block, or fetch it from a secrets manager via a JSR223 PreProcessor. Then replace the hard-coded value here with a JMeter variable reference like ${PASSWORD}, so the test plan can be shared and reviewed without exposing the real secret."));
-        }
-        // fallback: raw body data
-        JMeterProperty post = http.getProperty("HTTPsampler.postBodyRaw");
-        if (post instanceof CollectionProperty) {
-            // ignore — raw body handled via Arguments above
         }
         return out;
     }

@@ -196,12 +196,14 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
 - **Category:** Scalability · **Severity:** ERROR
 - **Applies to:** `ResultCollector`
 - **Detects:** GUI-heavy ResultCollector enabled on the load path (memory blow-up risk).
-- **Detection logic:** Skips elements where `isEnabled() == false`. Reads
-  `TestElement.gui_class` (fully-qualified) and derives the simple name after the
-  last `.`. Fires when the simple name is in the hard-coded set:
-  `ViewResultsFullVisualizer`, `TableVisualizer`, `GraphVisualizer`,
+- **Detection logic:** Reads `TestElement.gui_class` (fully-qualified) and derives
+  the simple name after the last `.`. Fires when the simple name is in the
+  hard-coded set: `ViewResultsFullVisualizer`, `TableVisualizer`, `GraphVisualizer`,
   `StatVisualizer`, `SummaryReport`, `AssertionVisualizer`,
-  `RespTimeGraphVisualizer`, `DistributionGraphVisualizer`.
+  `RespTimeGraphVisualizer`, `DistributionGraphVisualizer`. Disabled listeners
+  (and any element beneath a disabled ancestor) are filtered out by
+  `RuleEngine.effectivelyEnabled` before the rule runs — the rule itself does no
+  enabled-check.
 - **Title:** `GUI-heavy listener enabled on load path`
 - **Description:** `The '{simpleName}' listener keeps every sample it sees in memory so it can render them in real time. That's fine when you're debugging a few requests, but on a sustained load test it means the heap grows linearly with the sample count. After a few hundred thousand samples, JMeter either slows to a crawl garbage-collecting or runs out of memory and crashes outright — usually at exactly the worst moment, several hours into the test.`
 - **Suggestion:** `Two good fixes. For normal test runs, right-click the listener and disable it — results still go to the JTL file (if you have a Simple Data Writer present) and you can analyze them after the run. If you need a lightweight always-on writer, add a Simple Data Writer element pointing at a results.jtl file; it streams straight to disk without buffering in memory. Save the GUI-heavy listeners for quick smoke tests with a handful of samples, never for full-scale runs.`
@@ -225,11 +227,12 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
 - **Category:** Scalability · **Severity:** WARN
 - **Applies to:** `ResultCollector`
 - **Detects:** Listener configured to save full response bodies into JTL output.
-- **Detection logic:** Skips elements where `isEnabled() == false`. Casts the element
-  to `ResultCollector` and reads `getSaveConfig().saveResponseData()`; fires when
-  that returns `true`. The flag lives on the listener's `SampleSaveConfiguration`
-  (stored in the JMX as `<objProp name="saveConfig">` with a nested `<responseData>`
-  boolean), not on any HTTP sampler property.
+- **Detection logic:** Casts the element to `ResultCollector` and reads
+  `getSaveConfig().saveResponseData()`; fires when that returns `true`. The flag
+  lives on the listener's `SampleSaveConfiguration` (stored in the JMX as
+  `<objProp name="saveConfig">` with a nested `<responseData>` boolean), not on
+  any HTTP sampler property. Disabled listeners are filtered out by
+  `RuleEngine.effectivelyEnabled` before the rule runs.
 - **Title:** `Listener saves full response data`
 - **Description:** `This listener is configured to save the full response body of every sample into its JTL output. Each response is potentially hundreds of kilobytes; on a sustained run the JTL file grows by gigabytes per minute, and JMeter buffers chunks of that in memory along the way. Disk fills up, heap pressure spikes, and the extra I/O slows the actual test down to where the reported response times aren't even representative of the system under test anymore.`
 - **Suggestion:** `Turn off the 'Save Response Data (XML)' checkbox on the listener's Configure panel unless you specifically need the body for later inspection. If you only need bodies for failed requests (a reasonable debugging compromise), set the global property jmeter.save.saveservice.response_data.on_error=true in jmeter.properties — JMeter will then save bodies only when a sample fails. For full-body captures, run a targeted smoke test with a handful of iterations rather than saving every response on a 10,000-thread run.`

@@ -41,7 +41,7 @@ public final class CsvAbsolutePathRule extends AbstractRule {
     @Override
     public List<Finding> check(JMeterTreeNode node, ScanContext ctx) {
         String fn = propString(node.getTestElement(), "filename");
-        if (fn == null || fn.isBlank() || hasJMeterVar(fn)) return List.of();
+        if (fn.isBlank() || hasJMeterVar(fn)) return List.of();
         boolean absolute = fn.startsWith("/") || (fn.length() > 2 && fn.charAt(1) == ':');
         if (!absolute) return List.of();
         return List.of(make(ctx.pathFor(node),

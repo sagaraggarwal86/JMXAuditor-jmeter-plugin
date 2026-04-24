@@ -8,6 +8,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import io.github.sagaraggarwal86.jmeter.jauditor.model.ScanResult;
 
+/**
+ * Jackson configuration for JSON report output: {@code NON_NULL} inclusion, pretty-printed,
+ * ISO-8601 timestamps. The mixin {@code @JsonIgnore}s {@link ScanResult#navigation()} —
+ * navigation carries live {@code JMeterTreeNode} references that must never serialize
+ * (invariant 1).
+ */
 public final class JAuditorObjectMapper {
 
     private JAuditorObjectMapper() {

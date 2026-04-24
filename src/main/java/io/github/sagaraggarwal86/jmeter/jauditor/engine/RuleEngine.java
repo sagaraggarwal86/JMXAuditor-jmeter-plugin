@@ -18,6 +18,14 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 
+/**
+ * Static entry point for running the 25-rule catalogue against a {@link JMeterTreeModel}.
+ * Amortizes {@code isAssignableFrom} by caching {@code concrete class → matching rules}
+ * in an {@link IdentityHashMap}. Implements the Tier 1 exception boundary: any
+ * {@link Exception} thrown by a rule is logged and replaced with a synthetic INFO
+ * finding via {@link io.github.sagaraggarwal86.jmeter.jauditor.model.Finding#ruleFailure}
+ * — see CLAUDE.md "Exception topology" for the full picture.
+ */
 public final class RuleEngine {
 
     private static final JAuditorLog LOG = JAuditorLog.forClass(RuleEngine.class);

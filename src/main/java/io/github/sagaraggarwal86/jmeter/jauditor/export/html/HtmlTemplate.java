@@ -5,6 +5,13 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+/**
+ * Loads the HTML skeleton, inline CSS, and inline xlsx-js-style bundle from the classpath
+ * and performs string-based token substitution. Sentinels use a double-underscore form
+ * to avoid collisions with legitimate block comments; per-token markers use the
+ * Mustache-ish {@code {{name}}} form. All values are passed through {@link HtmlEscaper}
+ * at the writer layer before reaching this class.
+ */
 public final class HtmlTemplate {
 
     private static final String BASE = "/io/github/sagaraggarwal86/jmeter/jauditor/report/";
@@ -16,7 +23,9 @@ public final class HtmlTemplate {
         String tpl = loadResource(BASE + "report-template.html");
         String css = loadResource(BASE + "report-styles.css");
         String xlsx = loadResource(BASE + "xlsx-style.bundle.js");
-        String out = tpl.replace("/*STYLES*/", css).replace("/*XLSX*/", xlsx);
+        // Sentinels use double-underscore to avoid accidental collision with
+        // legitimate CSS/JS block comments like /*STYLES*/ or /*XLSX*/.
+        String out = tpl.replace("/*__STYLES__*/", css).replace("/*__XLSX__*/", xlsx);
         for (Map.Entry<String, String> e : tokens.entrySet()) {
             out = out.replace("{{" + e.getKey() + "}}", e.getValue() == null ? "" : e.getValue());
         }

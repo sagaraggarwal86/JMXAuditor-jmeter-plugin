@@ -36,7 +36,7 @@ public final class JtlExcessiveSaveFieldsRule extends AbstractRule {
 
     @Override
     public String description() {
-        return "Test Plan enables a large number of jmeter.save.saveservice.* fields.";
+        return "Test Plan enables more than 20 jmeter.save.saveservice.* fields.";
     }
 
     @Override

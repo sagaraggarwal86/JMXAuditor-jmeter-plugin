@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ main, createSkeleton ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -25,6 +25,7 @@ jobs:
       - name: JAR size gate
         shell: bash
         run: |
-          size=$(stat -c%s target/jauditor-jmeter-plugin-*.jar 2>/dev/null || wc -c < target/jauditor-jmeter-plugin-*.jar)
-          echo "JAR size: $size bytes"
+          jar=$(ls target/jauditor-jmeter-plugin-*.jar | grep -vE 'sources|javadoc|original' | head -n1)
+          size=$(wc -c < "$jar")
+          echo "JAR: $jar  size: $size bytes"
           test "$size" -lt 5242880

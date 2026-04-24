@@ -4,6 +4,12 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Locale;
 
+/**
+ * Terminal state of a scan. {@link #COMPLETE} and {@link #CANCELLED} carry no banner;
+ * the three truncation outcomes ({@link #TIMEOUT}, {@link #NODE_LIMIT},
+ * {@link #FINDING_LIMIT}) produce user-visible text via {@link #bannerMessage(int)}.
+ * Banner strings live here so the dialog and the HTML report render identical wording.
+ */
 public enum ScanOutcome {
     COMPLETE(null),
     TIMEOUT("Scan exceeded 10s. Partial results shown."),

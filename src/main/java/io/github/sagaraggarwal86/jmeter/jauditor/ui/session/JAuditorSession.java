@@ -5,6 +5,7 @@ import io.github.sagaraggarwal86.jmeter.jauditor.util.EdtAssertions;
 
 import java.awt.*;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -72,7 +73,17 @@ public final class JAuditorSession {
     }
 
     public Set<String> hiddenRuleIds() {
-        return hiddenRuleIds;
+        return Collections.unmodifiableSet(hiddenRuleIds);
+    }
+
+    public void addHiddenRule(String ruleId) {
+        EdtAssertions.assertEdt();
+        hiddenRuleIds.add(ruleId);
+    }
+
+    public void clearHiddenRules() {
+        EdtAssertions.assertEdt();
+        hiddenRuleIds.clear();
     }
 
     public ScanResult currentFindings() {
@@ -85,6 +96,7 @@ public final class JAuditorSession {
     }
 
     public void clearOnDialogClose() {
+        EdtAssertions.assertEdt();
         this.currentFindings = null;
     }
 

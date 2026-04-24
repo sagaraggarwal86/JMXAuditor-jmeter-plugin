@@ -28,8 +28,9 @@ public final class FooterBar extends JPanel {
         add(rightPanel, BorderLayout.EAST);
     }
 
-    public void setMetadata(long secondsAgo, int nodes, int rules) {
-        left.setText("<html>Last scan: " + secondsAgo + "s ago · " + nodes + " nodes analyzed · "
+    public void setMetadata(long durationMs, int nodes, int rules) {
+        String dur = (durationMs < 1000) ? durationMs + " ms" : (durationMs / 1000L) + " s";
+        left.setText("<html>Last scan: " + dur + " · " + nodes + " nodes analyzed · "
                 + rules + " rules · <i>Tip: Export HTML for detailed findings</i></html>");
     }
 

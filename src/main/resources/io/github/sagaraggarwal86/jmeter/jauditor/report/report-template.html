@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{title}}</title>
-    <style>/*STYLES*/</style>
+    <style>/*__STYLES__*/</style>
 </head>
 <body>
 <div class="rpt">
@@ -14,6 +14,7 @@
             <div class="meta-grid">
                 <span class="ml">Test Plan</span><span class="mv">{{jmxFileName}}</span>
                 <span class="ml">Scan Analysis Date</span><span class="mv">{{scanTimestamp}}</span>
+                <span class="ml">Plugin Version</span><span class="mv">{{pluginVersion}}</span>
             </div>
         </div>
         <div class="header-actions">
@@ -34,7 +35,7 @@
     </div>
 </div>
 
-<script>/*XLSX*/</script>
+<script>/*__XLSX__*/</script>
 <script>
     (function () {
         var tabs = document.querySelectorAll('.sidebar .nav-item');
@@ -486,10 +487,10 @@
 
                 // Test Info sheet
                 var infoRows = [['Field', 'Value']];
-                var testPlan = document.querySelector('.meta-grid .mv');
-                var scanned = document.querySelectorAll('.meta-grid .mv')[1];
-                if (testPlan) infoRows.push(['Test Plan', testPlan.textContent.trim()]);
-                if (scanned) infoRows.push(['Scan Analysis Date', scanned.textContent.trim()]);
+                var metaCells = document.querySelectorAll('.meta-grid .mv');
+                if (metaCells[0]) infoRows.push(['Test Plan', metaCells[0].textContent.trim()]);
+                if (metaCells[1]) infoRows.push(['Scan Analysis Date', metaCells[1].textContent.trim()]);
+                if (metaCells[2]) infoRows.push(['Plugin Version', metaCells[2].textContent.trim()]);
                 var wsInfo = XLSX.utils.aoa_to_sheet(infoRows);
                 wsInfo['!cols'] = [{wch: 24}, {wch: 60}];
                 styleHeaderRow(wsInfo, 2);

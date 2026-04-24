@@ -47,7 +47,7 @@ public final class HardcodedHostRule extends AbstractRule {
     public List<Finding> check(JMeterTreeNode node, ScanContext ctx) {
         TestElement te = node.getTestElement();
         String host = propString(te, "HTTPSampler.domain");
-        if (host == null || host.isBlank() || hasJMeterVar(host)) return List.of();
+        if (host.isBlank() || hasJMeterVar(host)) return List.of();
         if (!HOSTISH.matcher(host).matches()) return List.of();
         return List.of(make(ctx.pathFor(node),
                 "Hard-coded hostname",

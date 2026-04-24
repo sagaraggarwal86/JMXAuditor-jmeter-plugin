@@ -14,6 +14,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Writes the schema 1.0 JSON report: pretty-printed UTF-8, camelCase keys, lowercase
+ * enum values, {@code NON_NULL} omission, ISO-8601 timestamps with zone offset.
+ * The schema is part of the public API contract — renames or removals bump
+ * {@code schemaVersion} (invariant 1).
+ */
 public final class JsonReportWriter {
 
     private static final ObjectMapper MAPPER = JAuditorObjectMapper.create();

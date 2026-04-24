@@ -44,7 +44,7 @@ public final class ThreadGroupZeroDurationRule extends AbstractRule {
         boolean scheduler = propBool(te, "ThreadGroup.scheduler");
         if (!scheduler) return List.of();
         String dur = propString(te, "ThreadGroup.duration");
-        if (dur == null || dur.isBlank() || "0".equals(dur.trim())) {
+        if (dur.isBlank() || "0".equals(dur.trim())) {
             return List.of(make(ctx.pathFor(node),
                     "Thread Group scheduler enabled with zero duration",
                     "This Thread Group has its scheduler switched on but no duration filled in (the field is empty or set to 0). JMeter reads that as 'run for zero seconds' — so the moment the test starts, the scheduler tells the threads they're already out of time and they shut down before any meaningful work happens.",

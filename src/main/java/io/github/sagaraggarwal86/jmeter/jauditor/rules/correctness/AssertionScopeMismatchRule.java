@@ -45,7 +45,7 @@ public final class AssertionScopeMismatchRule extends AbstractRule {
         String scope = propString(node.getTestElement(), "Assertion.scope");
         // Fire only for blank or "parent" (Main sample only). "all" already covers sub-samples,
         // "children" scopes to sub-samples, "variable" is user-defined — none of those mismatch image_parser.
-        if (scope != null && !scope.isBlank() && !"parent".equalsIgnoreCase(scope)) {
+        if (!scope.isBlank() && !"parent".equalsIgnoreCase(scope)) {
             return List.of();
         }
         JMeterTreeNode parent = (JMeterTreeNode) node.getParent();
