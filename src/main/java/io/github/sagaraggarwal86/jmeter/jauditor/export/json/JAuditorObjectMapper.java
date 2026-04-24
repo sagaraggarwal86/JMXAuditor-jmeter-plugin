@@ -8,7 +8,9 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import io.github.sagaraggarwal86.jmeter.jauditor.model.ScanResult;
 
-/** Jackson config. Mixin {@code @JsonIgnore}s {@link ScanResult#navigation()} — it carries live tree-node refs. */
+/**
+ * Jackson config. Mixin {@code @JsonIgnore}s {@link ScanResult#navigation()} — it carries live tree-node refs.
+ */
 public final class JAuditorObjectMapper {
 
     private JAuditorObjectMapper() {

@@ -9,7 +9,9 @@ import org.apache.jmeter.testelement.TestElement;
 import java.util.*;
 import java.util.function.Supplier;
 
-/** Per-scan shared state: memo map, node→{@link NodePath} cache, and subtree-type cache. */
+/**
+ * Per-scan shared state: memo map, node→{@link NodePath} cache, and subtree-type cache.
+ */
 public final class ScanContext {
 
     private final JMeterTreeModel tree;

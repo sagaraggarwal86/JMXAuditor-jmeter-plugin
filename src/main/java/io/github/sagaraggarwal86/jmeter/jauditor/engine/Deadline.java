@@ -5,7 +5,9 @@ import io.github.sagaraggarwal86.jmeter.jauditor.util.Clock;
 import java.time.Duration;
 import java.time.Instant;
 
-/** Wall-clock expiration check driven by an injected {@link Clock}. */
+/**
+ * Wall-clock expiration check driven by an injected {@link Clock}.
+ */
 public final class Deadline {
     private final Clock clock;
     private final Instant at;

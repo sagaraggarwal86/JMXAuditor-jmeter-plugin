@@ -44,7 +44,7 @@ Read-only (never modifies `.jmx`), zero runtime impact, GUI-only. Stability over
   the recommendation. Trivial choices use prose.
 
   | Option | Risk | Effort | Impact | Recommendation |
-      |--------|------|--------|--------|----------------|
+        |--------|------|--------|--------|----------------|
 
 ## Examples
 
@@ -209,7 +209,8 @@ iterative DFS of `JMeterTreeNode`, results rendered in a modeless dialog with HT
   and put back afterwards) and **Dark Mode** (tri-state cycle auto → dark → light, written to
   `documentElement.dataset.theme`). Respects `prefers-color-scheme` when `data-theme` is absent; CSS variables
   (`--c-*`, `--cat-*`) carry the palette. Print stylesheet hides sidebar/controls/header-actions and expands all
-  groups. Sentinel tokens (non-`{{}}`): `/*__STYLES__*/`, `/*__XLSX__*/` (double-underscore form avoids collision with legitimate block comments). Writer tokens: `{{title}}`, `{{jmxFileName}}`,
+  groups. Sentinel tokens (non-`{{}}`): `/*__STYLES__*/`, `/*__XLSX__*/` (double-underscore form avoids collision with
+  legitimate block comments). Writer tokens: `{{title}}`, `{{jmxFileName}}`,
   `{{scanTimestamp}}`, `{{headerBanners}}` (unsaved + truncation), `{{navTabs}}`, `{{panels}}`. Findings table
   columns: Severity · Rule ID · Title · Description · Suggestion · Node Path. Severity display is "High / Medium /
   Low" in both findings and rule tables (CSS class stays `error / warn / info` so JSON-facing value is untouched).
@@ -226,14 +227,14 @@ iterative DFS of `JMeterTreeNode`, results rendered in a modeless dialog with HT
 
 ### Resources
 
-| File                                                         | Purpose                                          |
-|--------------------------------------------------------------|--------------------------------------------------|
-| `META-INF/services/org.apache.jmeter.gui.plugin.MenuCreator` | JMeter SPI discovery                             |
-| `io/.../jauditor/report/report-template.html`                | HTML report skeleton with `{{…}}` tokens         |
-| `io/.../jauditor/report/report-styles.css`                   | HTML report CSS (inlined via `/*__STYLES__*/`)   |
-| `io/.../jauditor/report/xlsx-style.bundle.js`                | xlsx-js-style bundle (inlined via `/*__XLSX__*/`)|
-| `io/.../jauditor/version.properties`                         | Maven-filtered: `version`, `buildTimestamp`      |
-| `spotbugs-exclude.xml`                                       | SpotBugs suppressions with rationale per pattern |
+| File                                                         | Purpose                                           |
+|--------------------------------------------------------------|---------------------------------------------------|
+| `META-INF/services/org.apache.jmeter.gui.plugin.MenuCreator` | JMeter SPI discovery                              |
+| `io/.../jauditor/report/report-template.html`                | HTML report skeleton with `{{…}}` tokens          |
+| `io/.../jauditor/report/report-styles.css`                   | HTML report CSS (inlined via `/*__STYLES__*/`)    |
+| `io/.../jauditor/report/xlsx-style.bundle.js`                | xlsx-js-style bundle (inlined via `/*__XLSX__*/`) |
+| `io/.../jauditor/version.properties`                         | Maven-filtered: `version`, `buildTimestamp`       |
+| `spotbugs-exclude.xml`                                       | SpotBugs suppressions with rationale per pattern  |
 
 ### Testing
 

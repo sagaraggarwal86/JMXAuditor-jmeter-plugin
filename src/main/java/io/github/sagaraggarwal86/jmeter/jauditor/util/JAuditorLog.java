@@ -3,7 +3,9 @@ package io.github.sagaraggarwal86.jmeter.jauditor.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** SLF4J wrapper prefixing every message with {@code "JAuditor: "}. */
+/**
+ * SLF4J wrapper prefixing every message with {@code "JAuditor: "}.
+ */
 public final class JAuditorLog {
 
     private static final String PREFIX = "JAuditor: ";
@@ -19,7 +21,9 @@ public final class JAuditorLog {
         return new JAuditorLog(LoggerFactory.getLogger(c));
     }
 
-    /** Returns {@code "****"}. Parameter is discarded so the value never reaches logs, findings, or reports. */
+    /**
+     * Returns {@code "****"}. Parameter is discarded so the value never reaches logs, findings, or reports.
+     */
     public static String redact(String value) {
         return REDACTED;
     }

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Locale;
 
-/** Terminal scan state. Banner text for truncation outcomes lives here so the dialog and the HTML report match. */
+/**
+ * Terminal scan state. Banner text for truncation outcomes lives here so the dialog and the HTML report match.
+ */
 public enum ScanOutcome {
     COMPLETE(null),
     TIMEOUT("Scan exceeded 10s. Partial results shown."),

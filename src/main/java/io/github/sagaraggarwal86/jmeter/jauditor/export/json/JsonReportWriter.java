@@ -14,7 +14,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Writes the schema 1.0 JSON report. Schema is public API — bump {@code schemaVersion} on rename. */
+/**
+ * Writes the schema 1.0 JSON report. Schema is public API — bump {@code schemaVersion} on rename.
+ */
 public final class JsonReportWriter {
 
     private static final ObjectMapper MAPPER = JAuditorObjectMapper.create();

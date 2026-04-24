@@ -1,6 +1,8 @@
 package io.github.sagaraggarwal86.jmeter.jauditor.export.html;
 
-/** Escapes the five HTML-breaking characters: {@code < > & " '}. */
+/**
+ * Escapes the five HTML-breaking characters: {@code < > & " '}.
+ */
 public final class HtmlEscaper {
 
     private HtmlEscaper() {

@@ -19,7 +19,9 @@ public record Finding(
         Objects.requireNonNull(nodePath, "nodePath");
     }
 
-    /** Synthetic INFO finding appended when a rule throws. Surfacing the failure is deliberate — silent rule crashes would let the plan look clean when it wasn't actually audited. */
+    /**
+     * Synthetic INFO finding appended when a rule throws. Surfacing the failure is deliberate — silent rule crashes would let the plan look clean when it wasn't actually audited.
+     */
     public static Finding ruleFailure(String ruleId, Category category, NodePath path, Throwable cause) {
         return new Finding(
                 ruleId,

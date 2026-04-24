@@ -2,7 +2,9 @@ package io.github.sagaraggarwal86.jmeter.jauditor.model;
 
 import java.util.List;
 
-/** Immutable breadcrumb. {@link #breadcrumb()} joins segments with U+203A (›). */
+/**
+ * Immutable breadcrumb. {@link #breadcrumb()} joins segments with U+203A (›).
+ */
 public record NodePath(List<String> segments) {
 
     public NodePath {

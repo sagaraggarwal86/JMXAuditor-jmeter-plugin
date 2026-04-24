@@ -15,7 +15,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/** Writes the single-file HTML report via token substitution on {@code report-template.html}. */
+/**
+ * Writes the single-file HTML report via token substitution on {@code report-template.html}.
+ */
 public final class HtmlReportWriter {
 
     private static final DateTimeFormatter DATE_FMT =

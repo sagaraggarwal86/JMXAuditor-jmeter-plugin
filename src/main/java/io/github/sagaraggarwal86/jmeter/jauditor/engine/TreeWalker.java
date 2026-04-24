@@ -6,7 +6,9 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-/** Iterative DFS with interrupt / deadline / cap checks at every node boundary. */
+/**
+ * Iterative DFS with interrupt / deadline / cap checks at every node boundary.
+ */
 public final class TreeWalker {
 
     private TreeWalker() {

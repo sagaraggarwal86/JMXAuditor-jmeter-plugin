@@ -20,7 +20,10 @@
       "PowerShell(Set-Location *)",
       "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $httpSamplers = \\([regex]::Matches\\($jmx, '<HTTPSamplerProxy '\\)\\).Count; $cfgDefaults = \\([regex]::Matches\\($jmx, '<ConfigTestElement '\\)\\).Count; $assertions = \\([regex]::Matches\\($jmx, 'Assertion '\\)\\).Count; Write-Host \"HTTPSamplerProxy: $httpSamplers\"; Write-Host \"ConfigTestElement: $cfgDefaults\"; Write-Host \"Assertions: $assertions\")",
       "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $beanshell = \\([regex]::Matches\\($jmx, '<BeanShell'\\)\\).Count; $jsr = \\([regex]::Matches\\($jmx, '<JSR223'\\)\\).Count; $groovy = \\([regex]::Matches\\($jmx, 'scriptLanguage\">groovy'\\)\\).Count; $jsBeanshell = \\([regex]::Matches\\($jmx, 'scriptLanguage\">beanshell'\\)\\).Count; Write-Host \"BeanShell elements: $beanshell\"; Write-Host \"JSR223 elements: $jsr\"; Write-Host \"JSR223 with Groovy: $groovy\"; Write-Host \"JSR223 with beanshell: $jsBeanshell\")",
-      "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $disabled = \\([regex]::Matches\\($jmx, 'enabled=\"false\"'\\)\\).Count; Write-Host \"enabled=false elements: $disabled\"; $txnControllers = \\([regex]::Matches\\($jmx, '<TransactionController '\\)\\).Count; Write-Host \"TransactionControllers: $txnControllers\"; $extractors = \\([regex]::Matches\\($jmx, '<BoundaryExtractor |<RegexExtractor |<JSONPostProcessor '\\)\\).Count; Write-Host \"Extractors total: $extractors\")"
+      "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $disabled = \\([regex]::Matches\\($jmx, 'enabled=\"false\"'\\)\\).Count; Write-Host \"enabled=false elements: $disabled\"; $txnControllers = \\([regex]::Matches\\($jmx, '<TransactionController '\\)\\).Count; Write-Host \"TransactionControllers: $txnControllers\"; $extractors = \\([regex]::Matches\\($jmx, '<BoundaryExtractor |<RegexExtractor |<JSONPostProcessor '\\)\\).Count; Write-Host \"Extractors total: $extractors\")",
+      "Bash(mvn -B clean verify)",
+      "PowerShell(mvn *)",
+      "PowerShell(git push *)"
     ]
   }
 }

@@ -6,7 +6,10 @@ import io.github.sagaraggarwal86.jmeter.jauditor.ui.theme.ThemeColors;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public final class KpiCardPanel extends JPanel {
