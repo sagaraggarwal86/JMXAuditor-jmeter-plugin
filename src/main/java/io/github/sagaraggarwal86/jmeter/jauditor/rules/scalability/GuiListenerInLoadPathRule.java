@@ -53,7 +53,6 @@ public final class GuiListenerInLoadPathRule extends AbstractRule {
     @Override
     public List<Finding> check(JMeterTreeNode node, ScanContext ctx) {
         TestElement te = node.getTestElement();
-        if (!te.isEnabled()) return List.of();
         String guiClass = te.getPropertyAsString("TestElement.gui_class");
         if (guiClass == null) return List.of();
         String simple = guiClass.substring(guiClass.lastIndexOf('.') + 1);

@@ -14,7 +14,13 @@
       "PowerShell(Get-ChildItem target/jauditor-jmeter-plugin-0.1.0.jar | Select-Object Name, @{N='SizeKB';E={[math]::Round\\($_.Length/1KB,1\\)}})",
       "PowerShell(Get-Item \"F:/Projects/BPM-jmeter-plugin/src/main/resources/xlsx-style.bundle.js\",\"F:/Projects/BPM-jmeter-plugin/src/main/resources/chart.umd.min.js\",\"F:/Projects/BPM-jmeter-plugin/src/main/resources/bpm-report.js\",\"F:/Projects/BPM-jmeter-plugin/src/main/resources/bpm-report.css\" | Select-Object Name, @{N='KB';E={[math]::Round\\($_.Length/1KB,0\\)}})",
       "PowerShell(Copy-Item *)",
-      "PowerShell(if \\(Test-Path \"F:/Projects/JAuditor-jmeter-plugin/src/main/resources/io/github/sagaraggarwal86/jmeter/jauditor/report/xlsx-style.bundle.js\"\\) { \\(Get-Item \"F:/Projects/JAuditor-jmeter-plugin/src/main/resources/io/github/sagaraggarwal86/jmeter/jauditor/report/xlsx-style.bundle.js\"\\).Length } else { \"MISSING\" })"
+      "PowerShell(if \\(Test-Path \"F:/Projects/JAuditor-jmeter-plugin/src/main/resources/io/github/sagaraggarwal86/jmeter/jauditor/report/xlsx-style.bundle.js\"\\) { \\(Get-Item \"F:/Projects/JAuditor-jmeter-plugin/src/main/resources/io/github/sagaraggarwal86/jmeter/jauditor/report/xlsx-style.bundle.js\"\\).Length } else { \"MISSING\" })",
+      "PowerShell(New-Item *)",
+      "PowerShell(Select-String *)",
+      "PowerShell(Set-Location *)",
+      "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $httpSamplers = \\([regex]::Matches\\($jmx, '<HTTPSamplerProxy '\\)\\).Count; $cfgDefaults = \\([regex]::Matches\\($jmx, '<ConfigTestElement '\\)\\).Count; $assertions = \\([regex]::Matches\\($jmx, 'Assertion '\\)\\).Count; Write-Host \"HTTPSamplerProxy: $httpSamplers\"; Write-Host \"ConfigTestElement: $cfgDefaults\"; Write-Host \"Assertions: $assertions\")",
+      "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $beanshell = \\([regex]::Matches\\($jmx, '<BeanShell'\\)\\).Count; $jsr = \\([regex]::Matches\\($jmx, '<JSR223'\\)\\).Count; $groovy = \\([regex]::Matches\\($jmx, 'scriptLanguage\">groovy'\\)\\).Count; $jsBeanshell = \\([regex]::Matches\\($jmx, 'scriptLanguage\">beanshell'\\)\\).Count; Write-Host \"BeanShell elements: $beanshell\"; Write-Host \"JSR223 elements: $jsr\"; Write-Host \"JSR223 with Groovy: $groovy\"; Write-Host \"JSR223 with beanshell: $jsBeanshell\")",
+      "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $disabled = \\([regex]::Matches\\($jmx, 'enabled=\"false\"'\\)\\).Count; Write-Host \"enabled=false elements: $disabled\"; $txnControllers = \\([regex]::Matches\\($jmx, '<TransactionController '\\)\\).Count; Write-Host \"TransactionControllers: $txnControllers\"; $extractors = \\([regex]::Matches\\($jmx, '<BoundaryExtractor |<RegexExtractor |<JSONPostProcessor '\\)\\).Count; Write-Host \"Extractors total: $extractors\")"
     ]
   }
 }

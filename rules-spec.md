@@ -63,7 +63,7 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
 | 7  | [CREDENTIALS_IN_UDV](#credentials_in_udv)                     | Security        | WARN     | Arguments                                        |            |
 | 8  | [GUI_LISTENER_IN_LOAD_PATH](#gui_listener_in_load_path)       | Scalability     | ERROR    | ResultCollector                                  |            |
 | 9  | [BEANSHELL_USAGE](#beanshell_usage)                           | Scalability     | WARN     | TestElement (filtered by class name)             |            |
-| 10 | [SAVE_RESPONSE_DATA_ENABLED](#save_response_data_enabled)     | Scalability     | WARN     | HTTPSamplerBase                                  |            |
+| 10 | [SAVE_RESPONSE_DATA_ENABLED](#save_response_data_enabled)     | Scalability     | WARN     | ResultCollector                                  |            |
 | 11 | [RETRIEVE_EMBEDDED_RESOURCES](#retrieve_embedded_resources)   | Scalability     | WARN     | HTTPSamplerBase                                  |            |
 | 12 | [THREAD_COUNT_EXCESSIVE](#thread_count_excessive)             | Scalability     | WARN     | ThreadGroup                                      |            |
 | 13 | [NO_THINK_TIMES](#no_think_times)                             | Realism         | WARN     | ThreadGroup                                      |            |
@@ -87,13 +87,13 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
 - **Category:** Correctness · **Severity:** ERROR
 - **Applies to:** `RegexExtractor`, `JSONPostProcessor`, `BoundaryExtractor`
 - **Detects:** Regex/JSON/Boundary Extractor with empty or missing default value.
-- **Detection logic:** Primary key is per type —
+- **Detection logic:** Primary key is the default-value text per type —
   `JSONPostProcessor.defaultValues` for `JSONPostProcessor`,
-  `BoundaryExtractor.default_empty_value` for `BoundaryExtractor`,
-  `RegexExtractor.default` otherwise. A fallback key `RegexExtractor.default_empty_value`
-  is always read as well, but because `JSONPostProcessor` and `BoundaryExtractor`
-  don't write that property it effectively contributes only for `RegexExtractor`.
-  Fires when **both** resolved values are blank.
+  `BoundaryExtractor.default` for `BoundaryExtractor`,
+  `RegexExtractor.default` otherwise. Fires when the default text is blank **and**
+  the extractor's `default_empty_value` boolean (RegexExtractor or BoundaryExtractor
+  only — JSONPostProcessor has no such flag) is `false` or absent. The boolean means
+  "assign empty string on no-match" and is read via `propBool`, not `propString`.
 - **Title:** `Extractor missing default value`
 - **Description:** `This extractor (Regex, JSON, or Boundary) has no default value configured. If the response ever doesn't match what the extractor is looking for — a different error page, a redirect, an empty body — the variable it was supposed to set just never gets assigned. Downstream samplers and assertions that rely on that variable won't fail loudly; they'll silently use a stale value from a previous iteration or an empty string, and the real bug becomes nearly impossible to spot.`
 - **Suggestion:** `Fill in the Default Value field on the extractor with a sentinel string that obviously doesn't look like real data — something like NOT_FOUND or EXTRACTION_FAILED. Then add a Response Assertion a little further down that fails when the variable equals that sentinel. That way a missed extraction turns into a clear failing sample in the report instead of a silent corruption that you only notice days later when the numbers don't add up.`
@@ -118,10 +118,12 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
 - **Applies to:** `ResponseAssertion`
 - **Detects:** Response Assertion with 'Main sample only' scope on sampler with sub-samples.
 - **Detection logic:** Reads `Assertion.scope`. Exits without firing when scope is
-  non-blank AND not `"parent"` AND not `"all"` (all case-insensitive) — e.g.
-  `"variable"` or `"children"`. Otherwise (blank, `parent`, or `all`) walks to the
-  parent tree node; fires when that parent is an `HTTPSamplerBase` with
-  `HTTPSampler.image_parser == true`.
+  non-blank AND not `"parent"` (case-insensitive) — i.e. `"all"` (Main sample and
+  sub-samples) already covers sub-samples, `"children"` scopes to them exclusively,
+  and `"variable"` is user-defined; none of those conflict with the parent's
+  `image_parser`. Otherwise (blank or `"parent"`, both meaning "Main sample only")
+  walks to the parent tree node; fires when that parent is an `HTTPSamplerBase`
+  with `HTTPSampler.image_parser == true`.
 - **Title:** `Assertion scope may miss sub-samples`
 - **Description:** `This Response Assertion is set to check only the main sample, but its parent HTTP sampler has 'Retrieve All Embedded Resources' turned on — which means every image, CSS file, and JS file the page pulls in becomes its own sub-sample. If any of those sub-samples fails (a broken image, a 404 on a stylesheet), the assertion can't see it, because it only ever looks at the main HTML response. The test reports success even when half the page didn't load.`
 - **Suggestion:** `Open the Response Assertion and change the scope dropdown from 'Main sample only' (or blank, which means the same thing) to 'Main sample and sub-samples'. After the change, the assertion will evaluate the main page and every embedded resource, so a broken sub-request shows up as a test failure. If you genuinely only care about the main response — say, you're asserting HTML content and don't care about asset availability — leave the scope alone and disable this check for that sampler.`
@@ -153,7 +155,7 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
   name or value is null, when the value contains `${`, or when the value is blank.
   Finding description carries the value passed through `JAuditorLog.redact()` (invariant 9).
 - **Title:** `Plaintext credential in request body`
-- **Description:** `The HTTP request sends the field '{name}' with a hard-coded value (masked here as **** — JAuditor never prints credential contents). That value lives directly inside the .jmx file, so anyone who opens the test plan or checks it into version control can read the real credential. Passwords and tokens written into .jmx files are a common source of accidental leaks, especially when the file ends up in a CI log or a screenshot.`
+- **Description:** `The HTTP request sends the field '{name}' with a hard-coded value. That value lives directly inside the .jmx file, so anyone who opens the test plan or checks it into version control can read the real credential. Passwords and tokens written into .jmx files are a common source of accidental leaks, especially when the file ends up in a CI log or a screenshot. Value redacted to **** — JAuditor never prints credential contents.`
 - **Suggestion:** `Move the actual value out of the .jmx. Typical options: load it from a CSV file at runtime (useful when each thread needs a different credential), read it from an environment variable using ${__env(NAME)} inside a User Defined Variables block, or fetch it from a secrets manager via a JSR223 PreProcessor. Then replace the hard-coded value here with a JMeter variable reference like ${PASSWORD}, so the test plan can be shared and reviewed without exposing the real secret.`
 - **Known false positives:** Test fixtures deliberately using throwaway credentials.
 
@@ -167,7 +169,7 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
   Strips a leading case-insensitive `"bearer "` prefix; fires when the remaining
   trimmed value is non-empty. Value is redacted via `JAuditorLog.redact()` (invariant 9).
 - **Title:** `Plaintext token in Authorization header`
-- **Description:** `This Header Manager sends an Authorization header with a bearer token written directly into the .jmx file (masked here as **** — JAuditor never prints token contents). Anyone who opens the test plan — teammates, reviewers, anyone with access to the source repository — can read the real token. Tokens committed into test plans have a habit of staying valid long after the author meant to rotate them, and they often end up leaking into screenshots, CI logs, or chat messages.`
+- **Description:** `This Header Manager sends an Authorization header with a bearer token written directly into the .jmx file. Anyone who opens the test plan — teammates, reviewers, anyone with access to the source repository — can read the real token. Tokens committed into test plans have a habit of staying valid long after the author meant to rotate them, and they often end up leaking into screenshots, CI logs, or chat messages. Value redacted to **** — JAuditor never prints token contents.`
 - **Suggestion:** `Take the token out of the .jmx and feed it in at runtime. The usual pattern: read an environment variable via ${__env(AUTH_TOKEN)} inside a User Defined Variables block, or load a line from a CSV file with a CSV Data Set Config element. Then change the header value here from the literal token to a variable reference like 'Bearer ${AUTH_TOKEN}'. The test runs exactly the same way, but the test plan no longer carries the secret with it.`
 - **Known false positives:** Public demo APIs with documented test tokens.
 
@@ -182,7 +184,7 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
   tokens anywhere matches. Skips when value is blank or contains `${`. Value is
   redacted via `JAuditorLog.redact()` (invariant 9).
 - **Title:** `Credential literal in User Defined Variables`
-- **Description:** `The User Defined Variable '{name}' has a name that looks like a credential (password, token, secret, apikey) and holds a hard-coded value (masked here as **** — JAuditor never prints credential contents). Because User Defined Variables live inside the .jmx, this value travels with the test plan everywhere it goes — into git, into screenshots, into CI job logs. That's almost never what the author intends.`
+- **Description:** `The User Defined Variable '{name}' has a name that looks like a credential (password, token, secret, apikey) and holds a hard-coded value. Because User Defined Variables live inside the .jmx, this value travels with the test plan everywhere it goes — into git, into screenshots, into CI job logs. That's almost never what the author intends. Value redacted to **** — JAuditor never prints credential contents.`
 - **Suggestion:** `Replace the literal value with something that resolves at runtime. Common options: ${__env(VAR_NAME)} to read from an environment variable, ${__P(prop.name)} to read from a JMeter property passed on the command line (jmeter -Jprop.name=value ...), or a CSV Data Set Config if every row needs its own credential. The variable name can stay exactly the same, so the rest of the test plan doesn't need to change — only the stored value moves out of the .jmx.`
 - **Known false positives:** Variables whose names contain one of the credential
   substrings but hold harmless test-only data (e.g. `test_token_label`).
@@ -221,13 +223,16 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
 ### SAVE_RESPONSE_DATA_ENABLED
 
 - **Category:** Scalability · **Severity:** WARN
-- **Applies to:** `HTTPSamplerBase`
-- **Detects:** HTTP sampler configured to save full response data.
-- **Detection logic:** Fires when `HTTPSampler.save_response_as_md5 == true`
-  **OR** `WebServiceSampler.save_response == true`.
-- **Title:** `Save Response Data enabled`
-- **Description:** `This HTTP sampler is configured to save the full response body for every request into the results file. On a serious load test at thousands of requests per second, each potentially hundreds of kilobytes in size, the JTL file grows by gigabytes per minute, and JMeter buffers chunks of that in memory along the way. Disk fills up, heap pressure spikes, and the extra I/O slows the actual test down to where the reported response times aren't even representative of the system under test anymore.`
-- **Suggestion:** `Turn off the save-response-data option on the sampler unless you specifically need the body for later inspection. If you only need bodies for failed requests (a reasonable debugging compromise), configure that via the jmeter.save.saveservice.response_data.on_error property in jmeter.properties — JMeter will then save bodies only when a sample fails. For full-body captures, run a targeted smoke test with a handful of iterations rather than saving every response on a 10,000-thread run.`
+- **Applies to:** `ResultCollector`
+- **Detects:** Listener configured to save full response bodies into JTL output.
+- **Detection logic:** Skips elements where `isEnabled() == false`. Casts the element
+  to `ResultCollector` and reads `getSaveConfig().saveResponseData()`; fires when
+  that returns `true`. The flag lives on the listener's `SampleSaveConfiguration`
+  (stored in the JMX as `<objProp name="saveConfig">` with a nested `<responseData>`
+  boolean), not on any HTTP sampler property.
+- **Title:** `Listener saves full response data`
+- **Description:** `This listener is configured to save the full response body of every sample into its JTL output. Each response is potentially hundreds of kilobytes; on a sustained run the JTL file grows by gigabytes per minute, and JMeter buffers chunks of that in memory along the way. Disk fills up, heap pressure spikes, and the extra I/O slows the actual test down to where the reported response times aren't even representative of the system under test anymore.`
+- **Suggestion:** `Turn off the 'Save Response Data (XML)' checkbox on the listener's Configure panel unless you specifically need the body for later inspection. If you only need bodies for failed requests (a reasonable debugging compromise), set the global property jmeter.save.saveservice.response_data.on_error=true in jmeter.properties — JMeter will then save bodies only when a sample fails. For full-body captures, run a targeted smoke test with a handful of iterations rather than saving every response on a 10,000-thread run.`
 - **Known false positives:** Tests that intentionally capture bodies for validation.
 
 ### RETRIEVE_EMBEDDED_RESOURCES
@@ -251,7 +256,7 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
   Fires when the value is strictly `> 1000`.
 - **Title:** `Thread Group has >1000 threads`
 - **Description:** `This Thread Group is set to run {n} virtual users inside a single JVM. A single JMeter process can usually handle 500-1000 threads comfortably; past that, threads compete for CPU time and memory so heavily that they can't actually issue requests at the rate you configured. You end up measuring JMeter's own scheduling delays rather than the system under test, and the reported TPS plateaus well below what the target could actually handle.`
-- **Suggestion:** `Split the load across multiple injectors. Two common approaches: run several Thread Groups of 500-1000 threads each on the same machine if CPU and memory allow, or distribute the test across multiple JMeter engines using distributed mode (one controller, several workers) or independent instances coordinated externally. Always size each injector so CPU stays below about 70% during the run — that's the threshold beyond which JMeter can't keep up with its own schedule.`
+- **Suggestion:** `Split the load across multiple injectors. Two common approaches: run several Thread Groups of 500-1000 threads each on the same machine if CPU and memory allow (a common sizing heuristic), or distribute the test across multiple JMeter engines using distributed mode (one controller, several workers) or independent instances coordinated externally. As a rule of thumb, keep each injector's CPU below about 70% during the run — past that, JMeter tends to fall behind its own schedule.`
 - **Known false positives:** Tests run on well-sized injectors tuned for high thread counts.
 
 ## Realism
@@ -381,7 +386,7 @@ Maintainability (whole-tree first) — see CLAUDE.md for why.
   `20` (`THRESHOLD` constant in the rule class); fires when the count is strictly `> 20`.
 - **Title:** `Excessive JTL save fields enabled`
 - **Description:** `This test plan has {n} jmeter.save.saveservice.* properties set to true, which tells JMeter to write that many columns into every row of the JTL results file. Every extra column adds I/O work during the test and disk space afterwards — on a long run with millions of samples, the difference between a minimal column set and everything enabled can be tens of gigabytes plus noticeably higher CPU overhead in the writer thread, which sometimes ends up slowing the test itself.`
-- **Suggestion:** `Trim the save fields down to the ones you actually use for analysis. A minimal but complete set is: timestamp, elapsed, label, responseCode, success, threadName — six columns that cover throughput, error rate, per-sampler latency, and per-thread grouping. Turn the rest off by removing the corresponding jmeter.save.saveservice.* properties from the Test Plan (or setting them to false). Keep the richer set only for targeted diagnostic runs where you specifically need response times by sub-component, assertion results, or latency breakdowns.`
+- **Suggestion:** `Trim the save fields down to the ones you actually use for analysis. One practical minimal set is: timestamp, elapsed, label, responseCode, success, threadName — six columns that together cover throughput, error rate, per-sampler latency, and per-thread grouping. Turn the rest off by removing the corresponding jmeter.save.saveservice.* properties from the Test Plan (or setting them to false). Keep the richer set only for targeted diagnostic runs where you specifically need response times by sub-component, assertion results, or latency breakdowns.`
 - **Known false positives:** Detailed diagnostic runs.
 
 ## Observability

@@ -44,17 +44,15 @@ public final class ExtractorNoDefaultRule extends AbstractRule {
     public List<Finding> check(JMeterTreeNode node, ScanContext ctx) {
         TestElement te = node.getTestElement();
         String defKey = (te instanceof JSONPostProcessor) ? "JSONPostProcessor.defaultValues"
-                : (te instanceof BoundaryExtractor) ? "BoundaryExtractor.default_empty_value"
+                : (te instanceof BoundaryExtractor) ? "BoundaryExtractor.default"
                   : "RegexExtractor.default";
-        String altKey = "RegexExtractor.default_empty_value";
-        String v1 = propString(te, defKey);
-        String v2 = propString(te, altKey);
-        if ((v1 == null || v1.isBlank()) && (v2 == null || v2.isBlank())) {
-            return List.of(make(ctx.pathFor(node),
-                    "Extractor missing default value",
-                    "This extractor (Regex, JSON, or Boundary) has no default value configured. If the response ever doesn't match what the extractor is looking for — a different error page, a redirect, an empty body — the variable it was supposed to set just never gets assigned. Downstream samplers and assertions that rely on that variable won't fail loudly; they'll silently use a stale value from a previous iteration or an empty string, and the real bug becomes nearly impossible to spot.",
-                    "Fill in the Default Value field on the extractor with a sentinel string that obviously doesn't look like real data — something like NOT_FOUND or EXTRACTION_FAILED. Then add a Response Assertion a little further down that fails when the variable equals that sentinel. That way a missed extraction turns into a clear failing sample in the report instead of a silent corruption that you only notice days later when the numbers don't add up."));
-        }
-        return List.of();
+        if (!propBlank(te, defKey)) return List.of();
+        // "default_empty_value" is a boolean flag — "assign empty string on no-match" — not a string value.
+        if (te instanceof RegexExtractor    && propBool(te, "RegexExtractor.default_empty_value"))    return List.of();
+        if (te instanceof BoundaryExtractor && propBool(te, "BoundaryExtractor.default_empty_value")) return List.of();
+        return List.of(make(ctx.pathFor(node),
+                "Extractor missing default value",
+                "This extractor (Regex, JSON, or Boundary) has no default value configured. If the response ever doesn't match what the extractor is looking for — a different error page, a redirect, an empty body — the variable it was supposed to set just never gets assigned. Downstream samplers and assertions that rely on that variable won't fail loudly; they'll silently use a stale value from a previous iteration or an empty string, and the real bug becomes nearly impossible to spot.",
+                "Fill in the Default Value field on the extractor with a sentinel string that obviously doesn't look like real data — something like NOT_FOUND or EXTRACTION_FAILED. Then add a Response Assertion a little further down that fails when the variable equals that sentinel. That way a missed extraction turns into a clear failing sample in the report instead of a silent corruption that you only notice days later when the numbers don't add up."));
     }
 }

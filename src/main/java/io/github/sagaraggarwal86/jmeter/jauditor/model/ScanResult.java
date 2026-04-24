@@ -4,6 +4,8 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 
 import java.lang.ref.WeakReference;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +26,11 @@ public record ScanResult(
     public ScanResult {
         findings = List.copyOf(findings);
         suppressedRuleIds = List.copyOf(suppressedRuleIds);
-        navigation = (navigation == null) ? Map.of() : Map.copyOf(navigation);
+        // IdentityHashMap preserved — Finding is a record with structural equals, so two separate findings that
+        // happen to share every field (e.g. two unnamed "JSON Extractor" siblings under the same sampler) compare
+        // equal. Map.copyOf would collide them; identity semantics keep them as distinct navigation targets.
+        navigation = (navigation == null)
+                ? Map.of()
+                : Collections.unmodifiableMap(new IdentityHashMap<>(navigation));
     }
 }

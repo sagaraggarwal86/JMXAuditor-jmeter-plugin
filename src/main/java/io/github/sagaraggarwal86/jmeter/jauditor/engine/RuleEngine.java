@@ -22,7 +22,21 @@ public final class RuleEngine {
 
     private static final JAuditorLog LOG = JAuditorLog.forClass(RuleEngine.class);
 
+    // The one rule that must still run on disabled nodes — it exists to flag them.
+    private static final String DISABLED_RULE_ID = "DISABLED_ELEMENT_IN_TREE";
+
     private RuleEngine() {
+    }
+
+    // True iff the node and every ancestor up to (but not including) the synthetic root has enabled=true.
+    // JMeter's TestCompiler skips any subtree rooted at a disabled element, so children of a disabled
+    // ancestor don't execute regardless of their own flag; rules should see the same effective reality.
+    private static boolean effectivelyEnabled(JMeterTreeNode node) {
+        for (JMeterTreeNode cur = node; cur != null && cur.getParent() != null; cur = (JMeterTreeNode) cur.getParent()) {
+            TestElement te = cur.getTestElement();
+            if (te != null && !te.isEnabled()) return false;
+        }
+        return true;
     }
 
     public static ScanResult scan(
@@ -54,15 +68,21 @@ public final class RuleEngine {
         List<Finding> findings = new ArrayList<>();
         Map<Finding, WeakReference<JMeterTreeNode>> nav = new IdentityHashMap<>();
         JMeterTreeNode root = (JMeterTreeNode) tree.getRoot();
+        // JMeterTreeModel roots the tree at a synthetic TestPlan node whose first child is the real TestPlan
+        // (see JMeterTreeModel#initTree). Walking from the synthetic root would fire TestPlan-applicable rules
+        // twice and leave the root-side finding un-navigable because root.getParent() == null.
+        JMeterTreeNode startNode = root.getChildCount() > 0 ? (JMeterTreeNode) root.getChildAt(0) : root;
 
         Map<Class<?>, List<Rule>> rulesByConcrete = new IdentityHashMap<>();
 
-        TreeWalker.WalkResult walk = TreeWalker.walk(root, ctx, (node, idx) -> {
+        TreeWalker.WalkResult walk = TreeWalker.walk(startNode, ctx, (node, idx) -> {
             TestElement te = node.getTestElement();
             if (te == null) return;
+            boolean enabled = effectivelyEnabled(node);
             List<Rule> matched = rulesByConcrete.computeIfAbsent(te.getClass(),
                     cls -> filterMatching(active, cls));
             for (Rule r : matched) {
+                if (!enabled && !DISABLED_RULE_ID.equals(r.id())) continue;
                 try {
                     List<Finding> fs = r.check(node, ctx);
                     ctx.stats().incRules();
