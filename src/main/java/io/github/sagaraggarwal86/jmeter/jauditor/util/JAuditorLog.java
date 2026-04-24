@@ -3,6 +3,12 @@ package io.github.sagaraggarwal86.jmeter.jauditor.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * SLF4J wrapper prefixing every message with {@code "JAuditor: "} so plugin-originated
+ * lines are greppable in {@code jmeter.log}. {@link #redact(String)} collapses any
+ * credential value to {@code "****"} — the three Security rules that carry credential
+ * text into a finding description MUST route through it (invariant 9).
+ */
 public final class JAuditorLog {
 
     private static final String PREFIX = "JAuditor: ";
@@ -18,6 +24,12 @@ public final class JAuditorLog {
         return new JAuditorLog(LoggerFactory.getLogger(c));
     }
 
+    /**
+     * Returns the redacted sentinel {@code "****"} regardless of input. The parameter
+     * exists so call sites read naturally ({@code redact(password)}) and to document,
+     * statically, that a credential was handled; the actual value is intentionally
+     * discarded to keep it out of every downstream surface (log, finding text, report).
+     */
     public static String redact(String value) {
         return REDACTED;
     }

@@ -9,6 +9,13 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Complete result of a single scan. The compact constructor defensively copies both
+ * list fields; see the inline comment on {@code navigation} for why identity-map
+ * semantics are preserved there instead of using {@code Map.copyOf}. The
+ * {@code navigation} map is {@code @JsonIgnore}'d via a mixin — it would leak live
+ * {@code JMeterTreeNode} references into the JSON output.
+ */
 public record ScanResult(
         Instant scanTimestamp,
         String jmxFilePath,

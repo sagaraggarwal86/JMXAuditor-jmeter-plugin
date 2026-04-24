@@ -28,7 +28,7 @@ Medium, Low); click any of the six category buttons to toggle that category in o
 
 Export:
 
-- **Export HTML** — single self-contained report for PR attachments or archival.
+- **Export HTML** — single self-contained report for PR attachments or archival. Inside the report, an **Export Excel** toolbar button writes a styled `.xlsx` with one sheet per category, plus a Rule Reference sheet.
 - **Export JSON** — machine-readable findings (schema v1.0) for downstream tools.
 
 ## 3. The 25 rules
@@ -63,8 +63,10 @@ audited.
 
 ## 6. Dark mode note
 
-JAuditor adapts its palette to the active JMeter Look & Feel. Tested against Metal and FlatLaf Dark. The HTML report is
-always light-themed — it's produced for PRs, email, print.
+JAuditor adapts its in-JMeter palette to the active Look & Feel. Tested against Metal and FlatLaf Dark. The HTML report
+ships with a tri-state theme toggle (auto → dark → light) — default is `auto`, which follows the reader's
+`prefers-color-scheme`; state lives on `documentElement.dataset.theme`. When embedding the report in PR descriptions
+or email, pick a theme explicitly to avoid reader-local variation.
 
 ## 7. Troubleshooting
 

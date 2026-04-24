@@ -6,6 +6,12 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import java.util.*;
 import java.util.function.BiConsumer;
 
+/**
+ * Iterative DFS over the JMeter tree. Uses an {@link ArrayDeque} to avoid stack
+ * overflow on deep plans, and checks thread interrupt, deadline expiration, node cap,
+ * and finding cap at every node boundary. Returns a {@link WalkResult} whose
+ * {@link AbortReason} maps to a {@link io.github.sagaraggarwal86.jmeter.jauditor.model.ScanOutcome}.
+ */
 public final class TreeWalker {
 
     private TreeWalker() {

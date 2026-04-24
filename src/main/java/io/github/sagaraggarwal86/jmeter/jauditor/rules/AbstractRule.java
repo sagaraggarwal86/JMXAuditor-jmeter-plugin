@@ -11,6 +11,15 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+/**
+ * Shared helpers for reading JMeter properties ({@link #propString}, {@link #propBool},
+ * {@link #propInt}), detecting JMeter variable references ({@link #hasJMeterVar}),
+ * walking the whole tree ({@link #allNodes}), and constructing findings
+ * ({@link #make}). Rules subclass this rather than implement {@link Rule} directly.
+ * All helpers treat missing properties as empty/default — {@link #propString} in
+ * particular is guaranteed non-null, which is why the rules do not null-check its
+ * return value.
+ */
 public abstract class AbstractRule implements Rule {
 
     protected static String propString(TestElement te, String key) {
