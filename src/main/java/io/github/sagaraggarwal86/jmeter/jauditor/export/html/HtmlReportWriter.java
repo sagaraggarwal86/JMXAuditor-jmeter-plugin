@@ -23,10 +23,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Writes the single-file HTML report: token substitution on {@code report-template.html},
+ * styled via inlined {@code report-styles.css}, Excel export powered by an inlined
+ * xlsx-js-style bundle. Findings that share a rule id within a category panel collapse
+ * into a {@code grp-head} row plus hidden {@code grp-member} rows once the count hits
+ * {@link #GROUP_THRESHOLD} (currently 3).
+ */
 public final class HtmlReportWriter {
 
     private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss zzz", Locale.ROOT);
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss zzz", Locale.ROOT);
     private static final int GROUP_THRESHOLD = 3;
 
     private HtmlReportWriter() {
@@ -38,6 +45,7 @@ public final class HtmlReportWriter {
         tokens.put("title", "JAuditor Report — " + HtmlEscaper.escape(r.jmxFileName() == null ? "untitled" : r.jmxFileName()));
         tokens.put("jmxFileName", HtmlEscaper.escape(r.jmxFileName() == null ? "(unsaved test plan)" : r.jmxFileName()));
         tokens.put("scanTimestamp", formatTimestamp(r.scanTimestamp()));
+        tokens.put("pluginVersion", HtmlEscaper.escape(pluginVersion == null ? "dev" : pluginVersion));
         tokens.put("headerBanners", headerBanners(r));
         tokens.put("navTabs", renderNavTabs(agg));
         tokens.put("panels", renderPanels(agg, r.findings()));

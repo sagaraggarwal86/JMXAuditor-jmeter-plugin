@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -34,7 +35,7 @@ public final class KpiCardPanel extends JPanel {
     }
 
     private static String capitalize(String s) {
-        return s.charAt(0) + s.substring(1).toLowerCase();
+        return s.charAt(0) + s.substring(1).toLowerCase(Locale.ROOT);
     }
 
     private static Font baseLabelFont(JComponent fallback) {

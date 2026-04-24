@@ -43,7 +43,7 @@ public final class RetrieveEmbeddedResourcesRule extends AbstractRule {
         TestElement te = node.getTestElement();
         if (!propBool(te, "HTTPSampler.image_parser")) return List.of();
         String whitelist = propString(te, "HTTPSampler.embedded_url_re");
-        if (whitelist != null && !whitelist.isBlank()) return List.of();
+        if (!whitelist.isBlank()) return List.of();
         return List.of(make(ctx.pathFor(node),
                 "Retrieve Embedded Resources without URL filter",
                 "This HTTP sampler has 'Retrieve All Embedded Resources' turned on with no URL filter. That means every image, CSS file, JavaScript file, and iframe source the response references gets fetched automatically — including resources on third-party CDNs, analytics domains, ad networks, and font providers. One main request can turn into fifty actual HTTP calls, and the extra calls pollute the metrics with latencies that have nothing to do with the system you're actually testing.",

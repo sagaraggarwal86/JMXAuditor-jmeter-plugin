@@ -226,7 +226,7 @@ public final class AuditDialog extends JDialog {
             updateColumnWidth(r.findings());
             tabs.updateCounts(model);
             kpi.update(r.findings());
-            footer.setMetadata(Math.max(0, r.durationMs() / 1000L), r.nodesAnalyzed(), RuleRegistry.count());
+            footer.setMetadata(Math.max(0L, r.durationMs()), r.nodesAnalyzed(), RuleRegistry.count());
             footer.setHiddenCount(JAuditorSession.get().hiddenRuleIds().size());
             if (r.outcome().isTruncated()) {
                 banner.setText(r.outcome().bannerMessage(r.findings().size()));
@@ -304,7 +304,7 @@ public final class AuditDialog extends JDialog {
     }
 
     private void onShowAll() {
-        JAuditorSession.get().hiddenRuleIds().clear();
+        JAuditorSession.get().clearHiddenRules();
         footer.setHiddenCount(0);
         startScan();
     }
@@ -366,7 +366,7 @@ public final class AuditDialog extends JDialog {
         FindingsContextMenu.build(f,
                 this::navigateTo,
                 ruleId -> {
-                    JAuditorSession.get().hiddenRuleIds().add(ruleId);
+                    JAuditorSession.get().addHiddenRule(ruleId);
                     footer.setHiddenCount(JAuditorSession.get().hiddenRuleIds().size());
                 }).show(e.getComponent(), e.getX(), e.getY());
     }
@@ -412,9 +412,11 @@ public final class AuditDialog extends JDialog {
         bindSeverity(im, am, KeyEvent.VK_2, "sevError", FindingsTableModel.Filter.ERROR);
         bindSeverity(im, am, KeyEvent.VK_3, "sevWarn", FindingsTableModel.Filter.WARN);
         bindSeverity(im, am, KeyEvent.VK_4, "sevInfo", FindingsTableModel.Filter.INFO);
+        int[] catKeys = {KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3,
+                KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6};
         Category[] cats = Category.values();
         for (int i = 0; i < cats.length; i++) {
-            bindCategory(im, am, KeyEvent.VK_1 + i, "cat" + i, cats[i]);
+            bindCategory(im, am, catKeys[i], "cat" + i, cats[i]);
         }
     }
 

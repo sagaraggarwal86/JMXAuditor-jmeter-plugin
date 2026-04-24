@@ -47,7 +47,7 @@ public final class ExtractorNoReferenceNameRule extends AbstractRule {
                 : (te instanceof BoundaryExtractor) ? "BoundaryExtractor.refname"
                   : "RegexExtractor.refname";
         String v = propString(te, refKey);
-        if (v == null || v.isBlank()) {
+        if (v.isBlank()) {
             return List.of(make(ctx.pathFor(node),
                     "Extractor missing reference name",
                     "This extractor runs its extraction logic but has no reference name set, so whatever it pulls out of the response goes nowhere — there's no JMeter variable for later samplers, assertions, or scripts to read it from. Effectively the extractor is doing work that produces no usable output, and any downstream element that was expecting a variable will see it as undefined.",

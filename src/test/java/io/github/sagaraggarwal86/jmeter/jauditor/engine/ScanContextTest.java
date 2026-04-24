@@ -13,6 +13,9 @@ class ScanContextTest {
     @Test
     void memoizeComputesOnce() {
         FakeClock clock = FakeClock.atEpoch();
+        // tree is intentionally null — memoize() never touches it. Passing a real
+        // JMeterTreeModel requires JMeterUtils.setJMeterHome(...) bootstrap, which
+        // is deferred to the Tier 1 fixture harness (see CLAUDE.md Testing table).
         ScanContext ctx = new ScanContext(null, new ScanStats(),
                 new Deadline(clock, Duration.ofSeconds(10)), clock);
         AtomicInteger calls = new AtomicInteger();

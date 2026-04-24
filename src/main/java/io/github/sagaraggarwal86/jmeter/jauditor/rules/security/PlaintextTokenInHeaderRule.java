@@ -12,6 +12,7 @@ import org.apache.jmeter.testelement.TestElement;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public final class PlaintextTokenInHeaderRule extends AbstractRule {
@@ -53,7 +54,7 @@ public final class PlaintextTokenInHeaderRule extends AbstractRule {
             if (!"Authorization".equalsIgnoreCase(name.trim())) continue;
             if (hasJMeterVar(val)) continue;
             String stripped = val.trim();
-            if (stripped.toLowerCase().startsWith("bearer ")) stripped = stripped.substring(7).trim();
+            if (stripped.toLowerCase(Locale.ROOT).startsWith("bearer ")) stripped = stripped.substring(7).trim();
             if (stripped.isEmpty()) continue;
             out.add(make(ctx.pathFor(node),
                     "Plaintext token in Authorization header",

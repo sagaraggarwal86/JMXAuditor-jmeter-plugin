@@ -47,9 +47,7 @@ public final class CredentialsInUdvRule extends AbstractRule {
 
     @Override
     public List<Finding> check(JMeterTreeNode node, ScanContext ctx) {
-        TestElement te = node.getTestElement();
-        if (!"Arguments".equals(te.getClass().getSimpleName()) && !(te instanceof Arguments)) return List.of();
-        Arguments a = (Arguments) te;
+        Arguments a = (Arguments) node.getTestElement();
         List<Finding> out = new ArrayList<>();
         for (int i = 0; i < a.getArgumentCount(); i++) {
             Argument arg = a.getArgument(i);
