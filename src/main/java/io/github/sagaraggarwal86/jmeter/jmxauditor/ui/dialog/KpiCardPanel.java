@@ -4,7 +4,6 @@ import io.github.sagaraggarwal86.jmeter.jmxauditor.model.Category;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.model.Finding;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.ui.theme.ThemeColors;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 import java.util.EnumSet;

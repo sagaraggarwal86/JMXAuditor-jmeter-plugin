@@ -4,7 +4,6 @@ import io.github.sagaraggarwal86.jmeter.jmxauditor.export.html.HtmlEscaper;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.model.Finding;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.ui.theme.ThemeColors;
 
-import javax.swing.*;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 

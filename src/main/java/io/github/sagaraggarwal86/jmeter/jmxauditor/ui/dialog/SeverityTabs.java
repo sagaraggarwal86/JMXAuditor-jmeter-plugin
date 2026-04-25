@@ -2,7 +2,6 @@ package io.github.sagaraggarwal86.jmeter.jmxauditor.ui.dialog;
 
 import io.github.sagaraggarwal86.jmeter.jmxauditor.model.Severity;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.function.Consumer;
 

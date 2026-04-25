@@ -6,7 +6,6 @@ import io.github.sagaraggarwal86.jmeter.jmxauditor.model.ScanResult;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.util.Clock;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
 
-import javax.swing.*;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;

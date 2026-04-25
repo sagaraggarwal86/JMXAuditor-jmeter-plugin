@@ -2,10 +2,8 @@ package io.github.sagaraggarwal86.jmeter.jmxauditor.util;
 
 import org.junit.jupiter.api.Test;
 
-import javax.swing.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class EdtAssertionsTest {

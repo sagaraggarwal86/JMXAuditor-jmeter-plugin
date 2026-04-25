@@ -1,6 +1,5 @@
 package io.github.sagaraggarwal86.jmeter.jmxauditor.ui.theme;
 
-import javax.swing.*;
 import java.awt.*;
 
 public final class ThemeDetector {

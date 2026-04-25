@@ -1,9 +1,9 @@
 # CLAUDE.md
 
 You are a contributor to JMXAuditor, a JMeter 5.6.3 GUI-mode plugin that performs **static analysis** on `.jmx` test
-plans
-and surfaces findings in six categories (Correctness, Security, Scalability, Realism, Maintainability, Observability).
-Read-only (never modifies `.jmx`), zero runtime impact, GUI-only. Stability over novelty, correctness over features.
+plans and surfaces findings in six categories (Correctness, Security, Scalability, Realism, Maintainability,
+Observability). Read-only (never modifies `.jmx`), zero runtime impact, GUI-only. Stability over novelty, correctness
+over features.
 
 ## Rules
 
@@ -41,41 +41,8 @@ Read-only (never modifies `.jmx`), zero runtime impact, GUI-only. Stability over
 - Responses: concise — bug-fix explanation ≤10 lines; proposal ≤1 table + 3 bullets; architecture change requires a
   table. No filler, no restating the request.
 - Feedback: direct, not diplomatic. Flag concrete concerns even when not asked.
-- For non-trivial decisions (≥2 options with materially different risk/effort/impact), present a table and highlight
-  the recommendation. Trivial choices use prose.
-
-  | Option | Risk | Effort | Impact | Recommendation |
-            |--------|------|--------|--------|----------------|
-
-## Examples
-
-### Decision-table usage
-
-**Trivial — prose, no table:**
-> Rename `cap` → `capitalizeFirst` in `HtmlReportWriter` for readability. Same file, same call sites. Proceed?
-
-**Non-trivial — table:**
-> Two approaches for collapsing duplicate-rule findings in the HTML report:
->
-> | Option | Risk | Effort | Impact | Recommendation |
-> |--------|------|--------|--------|----------------|
-> | Group in writer (`grp-head` + hidden `grp-member` rows, JS toggle) | Sort/search need group-aware logic | M | Preserves per-row sortability + collapse UX | ✓ |
-> | Flatten with "+N more" suffix on the first row | Hides siblings entirely; search can't reach them | S | Cleaner DOM, loses detail | |
-
-### Multi-file change presentation
-
-**Bad:** "I'll edit `HtmlReportWriter.java` first, then show the next file."
-
-**Good:** "3 files, apply in order: (1) `HtmlReportWriter.java` — emit `{{scanStats}}` token; (2)
-`report-template.html` — reference the token in the header meta-grid; (3) `report-styles.css` — style the new meta row.
-All diffs below."
-
-### Rollback message
-
-**Bad:** *(silently reverts)*
-
-**Good:** "Reverting `HtmlReportWriter.java` and `report-template.html` to the last approved state (commit `<sha>`).
-Ready for next instruction."
+- For non-trivial decisions (≥2 options with materially different risk/effort/impact), present a table
+  (`Option | Risk | Effort | Impact | Recommendation`) and highlight the recommendation. Trivial choices use prose.
 
 ## Environment
 
@@ -104,16 +71,10 @@ mvn clean deploy -Prelease                # Release to Maven Central (GPG + cent
 
 ## Definition of Done
 
-A task is complete only when all apply:
-
-- `mvn clean verify` passes (tests + SpotBugs).
-- No new compiler warnings or deprecation notices.
-- No invariant from *Enforced invariants* violated.
-- Dependency direction preserved (`ui → scan → engine → rules → model`; `engine → util`; `export → model + rules`).
-- Fat JAR < 5 MB (`target/jmxauditor-jmeter-plugin-*.jar`).
-- Scan of a 150-sampler test plan < 500 ms (hand-verified; no automated perf gate yet).
-- CLAUDE.md reviewed and updated if architecture, invariants, or class responsibilities changed.
-- README.md reviewed and updated if user-facing behavior changed.
+- `mvn clean verify` passes (tests + SpotBugs); no new compiler/deprecation warnings.
+- No `## Enforced invariants` violated; dependency direction preserved.
+- Fat JAR < 5 MB; scan of 150-sampler plan < 500 ms (hand-verified).
+- CLAUDE.md / README.md updated when their respective ownership scopes change.
 
 ## Architecture
 
@@ -126,37 +87,37 @@ iterative DFS of `JMeterTreeNode`, results rendered in a modeless dialog with HT
 
 ### Class inventory
 
-| Class                                                                                                                          | Package       | Responsibility                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-|--------------------------------------------------------------------------------------------------------------------------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `JMXAuditorPlugin`                                                                                                             | (root)        | Plugin identity constants (`NAME`, `ACTION_ID = "jmxauditor.audit"`). `version()` resolves in 3 tiers: filtered `version.properties` → JAR manifest → `"dev"` (defends against unfiltered `${project.version}` reaching the UI).                                                                                                                                                                                                                                                                                                                              |
-| `Severity`, `Category`, `ScanOutcome`                                                                                          | model         | Enums serialized lowercase via `@JsonValue`. `ScanOutcome.bannerMessage` is the single source of truth for truncation banners.                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `NodePath`                                                                                                                     | model         | Immutable list of segments. `breadcrumb()` joins with U+203A (›).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `Finding`                                                                                                                      | model         | Record. Never holds `JMeterTreeNode` or `WeakReference`. `ruleFailure` factory produces INFO findings on Tier 1 exceptions.                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `ScanResult`                                                                                                                   | model         | Record. Defensively copies findings + suppressedRuleIds. `navigation` map of `Finding → WeakReference<JMeterTreeNode>` is Jackson-ignored via mixin.                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `ScanLimits`                                                                                                                   | engine        | Single source: `MAX_NODES=10_000`, `MAX_FINDINGS=2000`, `MAX_SCAN_MILLIS=10_000`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `Deadline`                                                                                                                     | engine        | Clock-driven wall-clock expiration check. Uses injected `Clock` for testability.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `ScanStats`                                                                                                                    | engine        | Nodes/rules/findings counters. Mutated from scan thread only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `ScanContext`                                                                                                                  | engine        | Per-scan shared state. Owns memo map, node→`NodePath` cache, node→(class→bool) descendant cache. Scan-thread-local; never touched concurrently.                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `TreeWalker`                                                                                                                   | engine        | Iterative DFS via `ArrayDeque`. Checks interrupt, deadline, and node/finding caps at every node boundary. Returns `WalkResult` with an `AbortReason`.                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `RuleEngine`                                                                                                                   | engine        | Partitions rules into active/suppressed, walks tree, memoizes `concrete class → matching rules` via `IdentityHashMap`. Tier 1 catch → `Finding.ruleFailure` + WARN log.                                                                                                                                                                                                                                                                                                                                                                                       |
-| `Rule`                                                                                                                         | rules         | Stateless interface: `id`, `category`, `severity`, `description`, `appliesTo()`, `check(node, ctx)`. Whole-tree rules declare `appliesTo() = Set.of(TestPlan.class)`.                                                                                                                                                                                                                                                                                                                                                                                         |
-| `AbstractRule`                                                                                                                 | rules         | Shared helpers for property lookups, JMeter variable detection, tree traversal, and finding construction.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `RuleRegistry`                                                                                                                 | rules         | Immutable `List<Rule>` in PRD §7 order. Whole-tree rules placed first within category to populate shared memos.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| 25 rule classes (`rules.correctness`, `security`, `scalability`, `realism`, `maintainability`, `observability`)                | rules.*       | Final, package-private ctor. One rule per class. IDs UPPER_SNAKE_CASE (PRD §7). Severities fixed.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `ScanWorker`                                                                                                                   | scan          | `SwingWorker<ScanResult, Finding>`. Thread name `"JMXAuditor-Scan"`. Delegates to `RuleEngine.scan`.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `JMXAuditorMenuCreator`                                                                                                        | ui.action     | JMeter `MenuCreator` SPI. Holds static `AuditCommand` instance. Triggers `ToolbarButtonInstaller.installAsync()` once. `bootstrap()` wrapped in `try(Throwable)` — Tier 4.                                                                                                                                                                                                                                                                                                                                                                                    |
-| `AuditCommand`                                                                                                                 | ui.action     | Extends JMeter `AbstractAction`. `doAction`: GUI guard → empty-plan dialog → toFront-or-new-`AuditDialog` → `startScan`. Holds static `currentDialog` (one-per-JMeter).                                                                                                                                                                                                                                                                                                                                                                                       |
-| `ToolbarButtonInstaller`                                                                                                       | ui.action     | `SwingUtilities.invokeLater` install of "Audit" button. Walks `MainFrame` container tree for `JToolBar` (no reflection). Graceful fallback to menu + shortcut on failure.                                                                                                                                                                                                                                                                                                                                                                                     |
-| `AuditDialog`                                                                                                                  | ui.dialog     | Modeless `JDialog`. Owns `DialogState`. `PropertyChangeListener` on `SwingWorker.state` (not `Timer` polling). `CardLayout` center with TABLE and EMPTY cards (state-aware message: idle / scanning / no-findings / filter-empties). Key bindings: `Esc` close, `F5` / `Ctrl+R` rescan, `Enter` navigate, `1`–`4` severity (All/Error/Warn/Info), `Alt+1`..`Alt+6` toggle category in `Category` enum order.                                                                                                                                                  |
-| `DialogState`                                                                                                                  | ui.dialog     | `IDLE`, `SCANNING`, `CANCELLING`, `DONE`. All button enablement derives from state via `HeaderBar.applyState`.                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `HeaderBar`, `KpiCardPanel`, `SeverityTabs`, `FooterBar`, `FindingsTableModel`, `FindingsTableRenderer`, `FindingsContextMenu` | ui.dialog     | Sub-components. `SeverityTabs` + `KpiCardPanel` both drive `FindingsTableModel`, which composes severity × category filters (counts also respect the category filter). `SeverityTabs` labels are `All / High / Medium / Low` — UI display only; `Severity` enum + JSON stays `error / warn / info` (invariant 1). Window title set by `AuditDialog.applyWindowTitle` to `JMXAuditor-<jmx> [•]`. `HeaderBar` exports via split-button opening a `JPopupMenu` (HTML/JSON). Fonts derive from `UIManager.getFont("Label.font")` so JMeter zoom/scale propagates. |
-| `TreeNavigator`                                                                                                                | ui.navigation | Consumes `Map<Finding, WeakReference<JMeterTreeNode>>` from `ScanResult.navigation`. Parent-check validation → "This element no longer exists. Rescan." dialog.                                                                                                                                                                                                                                                                                                                                                                                               |
-| `ThemeColors`, `ThemeDetector`                                                                                                 | ui.theme      | UIManager-based luminance detection, two `EnumMap<Category, Color>` palettes (LIGHT/DARK). WCAG AA contrast.                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `JMXAuditorSession`                                                                                                            | ui.session    | Singleton. EDT-only setters (`EdtAssertions.assertEdt()`). Holds dialog geometry, export dirs, suppress-unsaved flag, `hiddenRuleIds` set, `currentFindings`.                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `ReportAggregates`                                                                                                             | export        | Record. Single pass over findings + `RuleRegistry` → `byCategory`, `bySeverity`, `findingsByCategory`, `rules`. Shared by HTML + JSON writers.                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `HtmlReportWriter`, `HtmlTemplate`, `HtmlEscaper`                                                                              | export.html   | Token substitution on `report-template.html`; sentinel markers `/*__STYLES__*/` → `report-styles.css`, `/*__XLSX__*/` → inlined `xlsx-style.bundle.js`. Escaper handles `< > & " '`. Writer emits Summary (category cards + collapsible rule reference) + one panel per category. Findings sharing a rule id collapse into a `grp-head` row + hidden `grp-member` rows when count ≥ `HtmlReportWriter.GROUP_THRESHOLD`.                                                                                                                                       |
-| `JMXAuditorObjectMapper`, `JsonReportWriter`                                                                                   | export.json   | Jackson `ObjectMapper` with `NON_NULL`, `INDENT_OUTPUT`. Mixin `@JsonIgnore`s `ScanResult.navigation`. Schema 1.0 wire format. Write-only — no `ParameterNamesModule` because JMeter 5.6.3 doesn't bundle it and records serialize fine without it.                                                                                                                                                                                                                                                                                                           |
-| `Clock`, `EdtAssertions`, `GuiGuard`, `JMXAuditorLog`                                                                          | util          | `Clock` factory for injected test time, EDT assertion helper, null-`GuiPackage` guard, SLF4J wrapper with `"JMXAuditor: "` prefix and `redact()` sentinel.                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Class                                                                                                                          | Package       | Responsibility                                                                                                                                                                                                                                         |
+|--------------------------------------------------------------------------------------------------------------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `JMXAuditorPlugin`                                                                                                             | (root)        | Plugin identity constants. `version()` 3-tier fallback (filtered properties → JAR manifest → `"dev"`) defends against unfiltered `${project.version}` reaching the UI.                                                                                 |
+| `Severity`, `Category`, `ScanOutcome`                                                                                          | model         | Public-facing enums. `ScanOutcome.bannerMessage` is the single source of truth for truncation banners.                                                                                                                                                 |
+| `NodePath`                                                                                                                     | model         | Immutable list of segments with breadcrumb rendering.                                                                                                                                                                                                  |
+| `Finding`                                                                                                                      | model         | Record. Never holds `JMeterTreeNode` or `WeakReference`. `ruleFailure` factory produces INFO findings on Tier 1 exceptions.                                                                                                                            |
+| `ScanResult`                                                                                                                   | model         | Record. Defensively copies findings + suppressedRuleIds. `navigation` map of `Finding → WeakReference<JMeterTreeNode>` is Jackson-ignored via mixin.                                                                                                   |
+| `ScanLimits`                                                                                                                   | engine        | Single source: `MAX_NODES=10_000`, `MAX_FINDINGS=2000`, `MAX_SCAN_MILLIS=10_000`.                                                                                                                                                                      |
+| `Deadline`                                                                                                                     | engine        | Clock-driven wall-clock expiration check. Uses injected `Clock` for testability.                                                                                                                                                                       |
+| `ScanStats`                                                                                                                    | engine        | Nodes/rules/findings counters. Mutated from scan thread only.                                                                                                                                                                                          |
+| `ScanContext`                                                                                                                  | engine        | Per-scan shared state. Owns memo map, node→`NodePath` cache, node→(class→bool) descendant cache. Scan-thread-local.                                                                                                                                    |
+| `TreeWalker`                                                                                                                   | engine        | Iterative DFS via `ArrayDeque`. Checks interrupt, deadline, and node/finding caps at every node boundary. Returns `WalkResult` with an `AbortReason`.                                                                                                  |
+| `RuleEngine`                                                                                                                   | engine        | Partitions rules into active/suppressed, walks tree, memoizes `concrete class → matching rules` via `IdentityHashMap`. Tier 1 catch → `Finding.ruleFailure` + WARN log.                                                                                |
+| `Rule`                                                                                                                         | rules         | Stateless interface: `id`, `category`, `severity`, `description`, `appliesTo()`, `check(node, ctx)`. Whole-tree rules declare `appliesTo() = Set.of(TestPlan.class)`.                                                                                  |
+| `AbstractRule`                                                                                                                 | rules         | Shared helpers for property lookups, JMeter variable detection, tree traversal, and finding construction.                                                                                                                                              |
+| `RuleRegistry`                                                                                                                 | rules         | Immutable `List<Rule>` in PRD §7 order. Whole-tree rules placed first within category to populate shared memos.                                                                                                                                        |
+| 25 rule classes                                                                                                                | rules.*       | Final, package-private ctor. One rule per class. IDs UPPER_SNAKE_CASE (PRD §7). Severities fixed.                                                                                                                                                      |
+| `ScanWorker`                                                                                                                   | scan          | `SwingWorker<ScanResult, Finding>` named `"JMXAuditor-Scan"`. Delegates to `RuleEngine.scan`.                                                                                                                                                          |
+| `JMXAuditorMenuCreator`                                                                                                        | ui.action     | JMeter `MenuCreator` SPI. Holds static `AuditCommand` instance. Triggers `ToolbarButtonInstaller.installAsync()` once. `bootstrap()` is Tier 4.                                                                                                        |
+| `AuditCommand`                                                                                                                 | ui.action     | Extends JMeter `AbstractAction`. `doAction`: GUI guard → empty-plan dialog → toFront-or-new-`AuditDialog` → `startScan`. Holds static `currentDialog` (one-per-JMeter).                                                                                |
+| `ToolbarButtonInstaller`                                                                                                       | ui.action     | EDT-async install of "Audit" button. Walks `MainFrame` container tree for `JToolBar` (no reflection). Graceful fallback to menu + shortcut on failure.                                                                                                 |
+| `AuditDialog`                                                                                                                  | ui.dialog     | Modeless `JDialog`. Owns `DialogState`. `PropertyChangeListener` on `SwingWorker.state` (not `Timer` polling). `CardLayout` with TABLE / EMPTY cards.                                                                                                  |
+| `DialogState`                                                                                                                  | ui.dialog     | `IDLE`, `SCANNING`, `CANCELLING`, `DONE`. All button enablement derives from state via `HeaderBar.applyState`.                                                                                                                                         |
+| `HeaderBar`, `KpiCardPanel`, `SeverityTabs`, `FooterBar`, `FindingsTableModel`, `FindingsTableRenderer`, `FindingsContextMenu` | ui.dialog     | Sub-components. `FindingsTableModel` composes severity × category filters (counts respect category filter). `SeverityTabs` labels are `All / High / Medium / Low` — UI display only; `Severity` enum + JSON stays `error / warn / info` (invariant 1). |
+| `TreeNavigator`                                                                                                                | ui.navigation | Consumes `Map<Finding, WeakReference<JMeterTreeNode>>` from `ScanResult.navigation`. Parent-check validation → "no longer exists" dialog.                                                                                                              |
+| `ThemeColors`, `ThemeDetector`                                                                                                 | ui.theme      | UIManager-based luminance detection, two `EnumMap<Category, Color>` palettes (LIGHT/DARK). WCAG AA contrast.                                                                                                                                           |
+| `JMXAuditorSession`                                                                                                            | ui.session    | Singleton. EDT-only setters (`EdtAssertions.assertEdt()`). Holds dialog geometry, export dirs, suppress-unsaved flag, `hiddenRuleIds`, `currentFindings`.                                                                                              |
+| `ReportAggregates`                                                                                                             | export        | Record. Single pass over findings + `RuleRegistry` → `byCategory`, `bySeverity`, `findingsByCategory`, `rules`. Shared by HTML + JSON writers.                                                                                                         |
+| `HtmlReportWriter`, `HtmlTemplate`, `HtmlEscaper`                                                                              | export.html   | Token + sentinel substitution on `report-template.html`. Findings sharing a rule id collapse into `grp-head` + hidden `grp-member` rows when count ≥ `HtmlReportWriter.GROUP_THRESHOLD`.                                                               |
+| `JMXAuditorObjectMapper`, `JsonReportWriter`                                                                                   | export.json   | Jackson `ObjectMapper` with `NON_NULL`, `INDENT_OUTPUT`. Mixin `@JsonIgnore`s `ScanResult.navigation`. Schema 1.0 wire format. Write-only.                                                                                                             |
+| `Clock`, `EdtAssertions`, `GuiGuard`, `JMXAuditorLog`                                                                          | util          | Injected-time clock, EDT assertion helper, null-`GuiPackage` guard, SLF4J wrapper with `"JMXAuditor: "` prefix and `redact()` sentinel.                                                                                                                |
 
 ### Threading & lifecycle
 
@@ -186,10 +147,9 @@ iterative DFS of `JMeterTreeNode`, results rendered in a modeless dialog with HT
   `deadline.expired`, `stats.nodesVisited >= MAX_NODES`, `stats.findingsEmitted >= MAX_FINDINGS`.
 - **Rule dispatch**: `RuleEngine` caches `Map<Class<?>, List<Rule>>` keyed by concrete `TestElement` class — each class
   pays the `isAssignableFrom` cost once per scan, not once per node.
-- **Per-node `NodePath`**: `ScanContext.pathFor(node)` memoized in `IdentityHashMap`. Rules call `ctx.pathFor(node)`;
-  `AbstractRule.pathOf` no longer exists.
+- **Per-node `NodePath`**: `ScanContext.pathFor(node)` memoized in `IdentityHashMap`. Rules call `ctx.pathFor(node)`.
 - **Subtree-type queries**: `ScanContext.hasDescendantOfType(node, Class<?>)` memoized per `(node, class)`. Used by
-  `NoThinkTimesRule` (2 queries per ThreadGroup). `AbstractRule.hasDescendantOfType` no longer exists.
+  `NoThinkTimesRule` (2 queries per ThreadGroup).
 - **Whole-tree rules**: first within each category in `RuleRegistry` to populate memo keys (`anyHttpSampler`,
   `anyCookieManager`) before per-node rules consume them.
 
@@ -204,31 +164,16 @@ iterative DFS of `JMeterTreeNode`, results rendered in a modeless dialog with HT
 
 ### Output formats
 
-- **HTML** (`report-template.html` + `report-styles.css` + bundled `xlsx-style.bundle.js`, classpath). Single
-  self-contained file, inline CSS + JS, no CDN. Header toolbar exposes **Export Excel** (xlsx-js-style →
-  `XLSX.utils.table_to_sheet` per panel: `Test Info` sheet, `Rule Reference` sheet, one sheet per category with
-  findings; pagination-hidden rows + `grp-member` rows + collapsed `<details>` are temporarily restored for export
-  and put back afterwards) and **Dark Mode** (tri-state cycle auto → dark → light, written to
-  `documentElement.dataset.theme`). Respects `prefers-color-scheme` when `data-theme` is absent; CSS variables
-  (`--c-*`, `--cat-*`) carry the palette. Print stylesheet hides sidebar/controls/header-actions and expands all
-  groups. Sentinel tokens (non-`{{}}`): `/*__STYLES__*/`, `/*__XLSX__*/` (double-underscore form avoids collision with
-  legitimate block comments). Writer tokens: `{{title}}`, `{{jmxFileName}}`,
-  `{{scanTimestamp}}`, `{{headerBanners}}` (unsaved + truncation), `{{navTabs}}`, `{{panels}}`. Findings table
-  columns: Severity · Title · Description · Suggestion · Node Path. Severity display is "High / Medium /
-  Low" in both findings and rule tables (CSS class stays `error / warn / info` so JSON-facing value is untouched).
-  Findings sharing a rule id within a panel collapse into a `grp-head` row + hidden `grp-member` rows when ≥ 3 occur;
-  threshold lives in `HtmlReportWriter.GROUP_THRESHOLD`. On `grp-head`, the Node Path cell carries a
-  `.grp-path-more` button with `(+N-1 more)` rendered via `::after`; click delegates to the canonical `.grp-toggle`
-  for that rule id so expansion state stays single-sourced. Excel export via `XLSX.utils.table_to_sheet` stays clean
-  — textContent doesn't include `::after`.
+- **HTML** — single self-contained file built from `report-template.html` + `report-styles.css` + bundled
+  `xlsx-style.bundle.js` (no CDN). Sentinel tokens `/*__STYLES__*/` and `/*__XLSX__*/` carry the inlined CSS / JS;
+  writer tokens use the standard `{{name}}` form. Header exposes Excel export (xlsx-js-style, one sheet per panel) and
+  a Dark Mode toggle. Findings sharing a rule id within a panel collapse when count ≥
+  `HtmlReportWriter.GROUP_THRESHOLD`.
+  Severity is rendered as High / Medium / Low; CSS class + JSON value stay `error / warn / info` (invariant 1).
 - **JSON** schema 1.0. Pretty-printed, UTF-8, ISO-8601 timestamps with offset, camelCase keys, lowercase enum values,
-  `NON_NULL` omission. `jmxFile` omitted when `null`. `ScanResult.navigation` ignored via Jackson mixin.
-- **Default filenames**: `jmxauditor-report-<yyyyMMddHHmmss>.{html,json,xlsx}`.
-  HTML + JSON are driven by `AuditDialog.FILE_TS` (`yyyyMMddHHmmss`) and the
-  `doExport` builder (`prefix + ts() + ext`); the xlsx filename is built in
-  `report-template.html`'s `exportExcel()` using a client-side `Date.toISOString()`
-  stripped to the same 14-digit shape. No `.jmx` stem, no separator between
-  date and time.
+  `NON_NULL` omission. `ScanResult.navigation` ignored via Jackson mixin.
+- **Default filenames**: `jmxauditor-report-<yyyyMMddHHmmss>.{html,json,xlsx}`. HTML/JSON via `AuditDialog.FILE_TS`;
+  xlsx built client-side from `Date.toISOString()` stripped to the same 14-digit shape.
 
 ### Resources
 
@@ -287,13 +232,9 @@ iterative DFS of `JMeterTreeNode`, results rendered in a modeless dialog with HT
 - **Ownership split**: `CLAUDE.md` = rules and context for Claude. `README.md` = user-facing features, install,
   configuration. `rules-spec.md` = per-rule detection logic and message strings (PRD §15 template). Change each in its
   own lane; do not duplicate across files.
+- **Triggers**: update CLAUDE.md when design / architecture / invariants / class responsibilities change; update
+  README.md on user-facing changes; update rules-spec.md on new rule, changed detection logic, or changed message.
 - **Auto-compact**: suggest `/compact` proactively before context becomes unwieldy.
-
-### CLAUDE.md update rules
-
-Trigger: session changes design, architecture, invariants, or class responsibilities.
-
-- Review this file in the same session. Remove stale entries.
 
 **Do not put in CLAUDE.md**:
 
@@ -302,46 +243,3 @@ Trigger: session changes design, architecture, invariants, or class responsibili
 - Ephemeral task state (in-progress work, TODOs).
 - Restatement of README or `rules-spec.md` content.
 - Duplicates of facts already stated elsewhere in this file.
-
-**Final pass — every item must hold**:
-
-- **Accuracy** — every claim matches current code; terms used consistently across sections.
-- **Completeness** — every class, invariant, integration point, and lifecycle hook that affects decisions is
-  documented.
-- **Precision** — vague terms replaced with concrete ones (exact file paths, API package paths, token budgets).
-- **Density** — every line earns its tokens; no filler, no hedging.
-- **Single source of truth** — each fact lives in one section; others cross-reference.
-
-### README update rules
-
-Trigger: user-facing feature changes (rule catalogue summary, zero-impact claims, export behavior, keyboard shortcuts).
-
-1. **User-benefit framing** — describe features by what they do *for the user*, not by internal mechanics.
-   Architectural terms ("pure observer", "tier 4 catch", "IdentityHashMap memo") stay in CLAUDE.md.
-2. **9 canonical sections per PRD §13** — Installation, Quick start, The 25 rules, Zero-impact commitment,
-   Accessibility posture, Dark mode note, Troubleshooting, Contributing, License. Summary only; full rule detection
-   logic lives in `rules-spec.md`.
-3. **Zero duplicate facts** — each fact appears in at most one place unless there is a legitimate summary/detail split
-   (README rule table → `rules-spec.md`).
-4. **Cross-platform shell blocks** — any command involving paths or env vars must show Linux/macOS, Windows PowerShell,
-   and Windows cmd.
-5. **Link CLAUDE.md, do not duplicate** — architecture and invariants live only in CLAUDE.md. Contributing section
-   links to it.
-6. **Badges at top** — License, Maven Central. Prefer the
-   `maven-metadata/v?metadataUrl=…repo1.maven.org…/maven-metadata.xml` variant over `maven-central/v/…` (the latter
-   hits a stale Solr index).
-7. **Callouts over subsections** — `> [!NOTE]` / `> [!IMPORTANT]` for 1-2 line asides.
-
-### rules-spec.md update rules
-
-Trigger: new rule, changed detection logic, changed finding message, or new fixture.
-
-- File layout: preamble → `## Related documents` → `## Conventions` → `## Rule catalogue` (TOC table:
-  `# / Rule ID / Category / Severity / Applies to / Whole-tree`) → six `## <Category>` sections in PRD §7 order,
-  each holding the relevant rule entries as `### RULE_ID`.
-- Entry per rule using PRD §15 template: `### RULE_ID` heading then bullets for Category · Severity,
-  Applies to, Detects, Detection logic, Title, Description, Suggestion, Known false positives. Optional:
-  Example fixture path (once Tier 1 fixtures exist).
-- Rule ID in heading must match `Rule.id()` exactly. Severity, Applies to, Detects (from `Rule.description()`),
-  and the `make(...)` Title / Description / Suggestion must be sourced verbatim from the rule class — spec is
-  the single source of truth, so drift is a bug.

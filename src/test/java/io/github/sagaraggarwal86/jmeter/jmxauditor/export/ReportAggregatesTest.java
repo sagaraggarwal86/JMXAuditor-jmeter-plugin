@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 class ReportAggregatesTest {
 
     private static Finding finding(String id, Category c, Severity s) {

@@ -4,7 +4,6 @@ import io.github.sagaraggarwal86.jmeter.jmxauditor.JMXAuditorPlugin;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.util.JMXAuditorLog;
 import org.apache.jmeter.gui.plugin.MenuCreator;
 
-import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;

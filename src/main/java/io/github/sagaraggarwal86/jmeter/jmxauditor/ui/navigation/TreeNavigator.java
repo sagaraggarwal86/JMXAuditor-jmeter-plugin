@@ -4,7 +4,6 @@ import io.github.sagaraggarwal86.jmeter.jmxauditor.model.Finding;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 
-import javax.swing.*;
 import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.lang.ref.WeakReference;
