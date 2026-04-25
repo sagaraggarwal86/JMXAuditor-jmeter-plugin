@@ -10,8 +10,11 @@
     <packaging>jar</packaging>
 
     <name>JMXAuditor</name>
-    <description>JMeter Script Auditor — static analysis plugin for JMeter 5.6.3 test plans.</description>
+    <description>Static analysis for JMeter 5.6.3 .jmx test plans — 25 read-only rules across correctness, security,
+        scalability, realism, maintainability, and observability, with HTML / JSON / Excel export.
+    </description>
     <url>https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin</url>
+    <inceptionYear>2026</inceptionYear>
 
     <licenses>
         <license>
@@ -30,7 +33,8 @@
 
     <scm>
         <connection>scm:git:https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin.git</connection>
-        <developerConnection>scm:git:https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin.git
+        </developerConnection>
         <url>https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin</url>
         <tag>HEAD</tag>
     </scm>
@@ -118,7 +122,7 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.15.0</version>
                 <configuration>
                     <parameters>true</parameters>
                     <release>17</release>
@@ -126,7 +130,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.5.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
@@ -138,7 +142,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -158,11 +162,72 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
+                <version>3.5.5</version>
+                <configuration>
+                    <!-- Disable JPMS module path; JMeter plugins use flat classpath -->
+                    <useModulePath>false</useModulePath>
+                    <!-- Fail the build if no tests are found — prevents a silently green CI on a broken suite -->
+                    <failIfNoTests>true</failIfNoTests>
+                    <!-- @{argLine} is the late-bound placeholder JaCoCo's prepare-agent populates. -->
+                    <argLine>@{argLine} -Djava.awt.headless=true</argLine>
+                </configuration>
+            </plugin>
+            <!-- ── JaCoCo: instrument → report → enforce line coverage ──
+                 Excludes are reused across report + check so the report bundle figure
+                 matches what the gate sees. Same exclusion shape as JAAR/BPM/JVCS
+                 sibling repos: Swing GUI + JMeter SPI bootstrap require a live JMeter
+                 GUI runtime to exercise meaningfully. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.14</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/ui/**</exclude>
+                        <exclude>**/JMXAuditorMenuCreator.class</exclude>
+                        <exclude>**/JMXAuditorMenuCreator$*.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>jacoco-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>jacoco-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.98</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -174,7 +239,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.12.0</version>
                 <configuration>
                     <doclint>none</doclint>
                     <quiet>true</quiet>
@@ -190,7 +255,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <id>enforce</id>
@@ -216,7 +281,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.8.6.2</version>
+                <version>4.9.6.0</version>
                 <executions>
                     <execution>
                         <phase>verify</phase>
@@ -242,7 +307,7 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.2.4</version>
+                        <version>3.2.8</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
@@ -250,13 +315,19 @@
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.sonatype.central</groupId>
                         <artifactId>central-publishing-maven-plugin</artifactId>
-                        <version>0.5.0</version>
+                        <version>0.10.0</version>
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>

@@ -1,7 +1,8 @@
 # JMXAuditor
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Maven Central](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fio%2Fgithub%2Fsagaraggarwal86%2Fjmxauditor-jmeter-plugin%2Fmaven-metadata.xml)](https://central.sonatype.com/artifact/io.github.sagaraggarwal86/jmxauditor-jmeter-plugin)
+[![Release](https://img.shields.io/github/v/release/sagaraggarwal86/JMXAuditor-jmeter-plugin?label=release&sort=semver&cacheSeconds=300)](https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin/releases/latest)
+[![Maven Central](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fio%2Fgithub%2Fsagaraggarwal86%2Fjmxauditor-jmeter-plugin%2Fmaven-metadata.xml&label=Maven%20Central&cacheSeconds=300)](https://central.sonatype.com/artifact/io.github.sagaraggarwal86/jmxauditor-jmeter-plugin)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 **Static analysis for JMeter scripts** — find scalability, correctness, and maintainability issues before the load test
 runs.
@@ -12,12 +13,28 @@ and has zero impact on test execution.
 
 ## 1. Installation
 
-1. Download `jmxauditor-jmeter-plugin-0.2.0.jar` from
-   the [Releases page](https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin/releases).
-2. Drop it into `<JMETER_HOME>/lib/ext/`.
+1. Download `jmxauditor-jmeter-plugin-*.jar` from
+   the [Releases page](https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin/releases) or
+   [Maven Central](https://central.sonatype.com/artifact/io.github.sagaraggarwal86/jmxauditor-jmeter-plugin).
+2. Drop it into `<JMETER_HOME>/lib/ext/`:
+
+    - **Linux / macOS**: `cp jmxauditor-jmeter-plugin-*.jar "$JMETER_HOME/lib/ext/"`
+    - **Windows (PowerShell)**: `Copy-Item jmxauditor-jmeter-plugin-*.jar "$env:JMETER_HOME\lib\ext\"`
+    - **Windows (cmd)**: `copy jmxauditor-jmeter-plugin-*.jar "%JMETER_HOME%\lib\ext\"`
+
 3. Restart JMeter. The **Tools → Audit Script** menu item and toolbar button appear automatically.
 
 Requirements: JMeter 5.6.3, Java 17+.
+
+### Build from source
+
+```bash
+git clone https://github.com/sagaraggarwal86/JMXAuditor-jmeter-plugin.git
+cd JMXAuditor-jmeter-plugin
+mvn clean verify
+```
+
+The plugin JAR lands at `target/jmxauditor-jmeter-plugin-*.jar`.
 
 ## 2. Quick start
 
@@ -29,7 +46,8 @@ Medium, Low); click any of the six category buttons to toggle that category in o
 Export:
 
 - **Export HTML** — single self-contained report for PR attachments or archival. Inside the report, an **Export Excel**
-  toolbar button writes a styled `.xlsx` with one sheet per category, plus a Rule Reference sheet.
+  toolbar button writes a styled `.xlsx` with **Test Info**, **Rule Reference**, and one sheet per category with
+  findings.
 - **Export JSON** — machine-readable findings (schema v1.0) for downstream tools.
 
 ## 3. The 25 rules
@@ -58,13 +76,13 @@ fat JAR < 5 MB.
 
 ## 5. Accessibility posture
 
-Level B + deliberate text. Full keyboard navigation (Tab, Arrow keys, Enter, Esc, Ctrl+R/F5). WCAG AA contrast in both
-light and dark L&F. Color is never the sole signal — severity is also communicated via sort order and text. Not formally
-audited.
+Full keyboard navigation (Tab, Arrow keys, Enter, Esc, Ctrl+R/F5). WCAG AA contrast in both light and dark L&F. Color
+is never the sole signal — severity is also communicated via sort order and text. Not formally audited.
 
 ## 6. Dark mode note
 
-JMXAuditor adapts its in-JMeter palette to the active Look & Feel. Tested against Metal and FlatLaf Dark. The HTML report
+JMXAuditor adapts its in-JMeter palette to the active Look & Feel. Tested against Metal and FlatLaf Dark. The HTML
+report
 ships with a tri-state theme toggle (auto → dark → light) — default is `auto`, which follows the reader's
 `prefers-color-scheme`; state lives on `documentElement.dataset.theme`. When embedding the report in PR descriptions
 or email, pick a theme explicitly to avoid reader-local variation.
@@ -79,9 +97,9 @@ or email, pick a theme explicitly to avoid reader-local variation.
 
 ## 8. Contributing
 
-```bash
-mvn clean verify
-```
+[`mvn clean verify`](#build-from-source) is the gate: all tests must pass and the JaCoCo line-coverage threshold
+(≥98% on the testable bundle) must hold. Swing UI classes and the JMeter SPI bootstrap are excluded from the gate;
+everything else is in scope.
 
 Architecture and engineering rules live in [CLAUDE.md](./CLAUDE.md). Rule specs live
 in [rules-spec.md](./rules-spec.md).

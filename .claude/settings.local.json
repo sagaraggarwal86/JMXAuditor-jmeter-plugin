@@ -23,7 +23,9 @@
       "PowerShell($jmx = Get-Content \"D:\\\\Learning\\\\JMeter\\\\CDOC_UI.jmx\" -Raw; $disabled = \\([regex]::Matches\\($jmx, 'enabled=\"false\"'\\)\\).Count; Write-Host \"enabled=false elements: $disabled\"; $txnControllers = \\([regex]::Matches\\($jmx, '<TransactionController '\\)\\).Count; Write-Host \"TransactionControllers: $txnControllers\"; $extractors = \\([regex]::Matches\\($jmx, '<BoundaryExtractor |<RegexExtractor |<JSONPostProcessor '\\)\\).Count; Write-Host \"Extractors total: $extractors\")",
       "Bash(mvn -B clean verify)",
       "PowerShell(mvn *)",
-      "PowerShell(git push *)"
+      "PowerShell(git push *)",
+      "Bash(mvn -B -ntp clean verify)",
+      "PowerShell(git rm *)"
     ]
   }
 }
