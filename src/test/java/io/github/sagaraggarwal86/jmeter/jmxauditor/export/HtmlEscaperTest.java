@@ -3,6 +3,8 @@ package io.github.sagaraggarwal86.jmeter.jmxauditor.export;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.export.html.HtmlEscaper;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 class HtmlEscaperTest {
 
     @Test

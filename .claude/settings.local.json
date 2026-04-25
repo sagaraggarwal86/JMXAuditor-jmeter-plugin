@@ -27,7 +27,9 @@
       "Bash(mvn -B -ntp clean verify)",
       "PowerShell(git rm *)",
       "Bash(git *)",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "PowerShell(git diff *)",
+      "PowerShell(git diff main..HEAD -- src/test/ | Select-String -Pattern '^[-+]import' -CaseSensitive)"
     ]
   }
 }

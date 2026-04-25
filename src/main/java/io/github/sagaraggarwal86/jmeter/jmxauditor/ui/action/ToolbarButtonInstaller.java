@@ -4,6 +4,7 @@ import io.github.sagaraggarwal86.jmeter.jmxauditor.JMXAuditorPlugin;
 import io.github.sagaraggarwal86.jmeter.jmxauditor.util.JMXAuditorLog;
 import org.apache.jmeter.gui.GuiPackage;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

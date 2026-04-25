@@ -1,5 +1,7 @@
 package io.github.sagaraggarwal86.jmeter.jmxauditor.util;
 
+import javax.swing.*;
+
 public final class EdtAssertions {
     private EdtAssertions() {
     }

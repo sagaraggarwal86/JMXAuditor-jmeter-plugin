@@ -2,6 +2,7 @@ package io.github.sagaraggarwal86.jmeter.jmxauditor.ui.dialog;
 
 import io.github.sagaraggarwal86.jmeter.jmxauditor.model.Finding;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.util.function.Consumer;
