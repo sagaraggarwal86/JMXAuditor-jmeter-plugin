@@ -6,7 +6,7 @@
 
     <groupId>io.github.sagaraggarwal86</groupId>
     <artifactId>jmxauditor-jmeter-plugin</artifactId>
-    <version>0.2.0</version>
+    <version>0.5.0</version>
     <packaging>jar</packaging>
 
     <name>JMXAuditor</name>
