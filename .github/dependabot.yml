@@ -5,6 +5,24 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # Security updates (CVE-driven) are still raised regardless of the rules below.
+    ignore:
+      # JMeter 5.6.3 ships slf4j 1.7.x on its runtime classpath. A 2.x bump in
+      # our `provided` dependency would diverge from what actually loads at
+      # runtime without delivering any benefit.
+      - dependency-name: "org.slf4j:slf4j-api"
+        update-types: ["version-update:semver-major"]
+      # JUnit 6 requires a Java baseline change. CLAUDE.md locks JUnit 5.10.x
+      # for the 5.6.3 / Java 17 target. Patch + minor updates within 5.x still
+      # come through.
+      - dependency-name: "org.junit.jupiter:junit-jupiter"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.junit.jupiter:junit-jupiter-api"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.junit.jupiter:junit-jupiter-engine"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.junit:junit-bom"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
