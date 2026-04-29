@@ -53,3 +53,25 @@ All runtime deps are `provided` (resolved from JMeter 5.6.3's classpath): `Apach
 `_components`, `_http`, `_java`; `jackson-databind`; `slf4j-api`. Fat JAR ships only plugin classes
 via `maven-shade-plugin` with an explicit artifact include — no transitive bundling. JAR-size gate
 < 5 MB enforced in CI.
+
+### Dependabot alerts on transitive JMeter dependencies
+
+GitHub's Dependabot raises CVE alerts against the *transitive graph* of the JMeter 5.6.3 artifacts
+(`ApacheJMeter_*`) — typical examples: `commons-collections`, `commons-beanutils`, the `log4j 1.2`
+bridge, `httpclient` 4.x, Groovy, BeanShell. These alerts are reviewed and treated as follows:
+
+- **Not shipped by this plugin.** All such dependencies are `provided` scope and are *excluded* from
+  the published fat JAR. The plugin distribution itself contains only JMXAuditor classes.
+- **Not loaded from this plugin's POM at runtime.** The user's JMeter installation supplies these
+  classes from `<JMETER_HOME>/lib/`. Bumping the version in our `pom.xml` would not change what is
+  actually loaded into the JVM.
+- **Cannot be remediated here.** Forcing a transitive override would either be ignored at runtime
+  (JMeter's bundled jars win on the classloader) or violate the `provided`-only / no-shading
+  invariants documented in `CLAUDE.md`. The genuine remediation path is an upstream JMeter release.
+- **Triage rule.** Alerts whose advisory affects only `provided`-scope transitives of `ApacheJMeter_*`
+  are dismissed as **"Vulnerable code is not actually used"** with a link back to this section. A
+  CVE in a dependency that is *direct* (e.g. `jackson-databind`, `slf4j-api`) or that the plugin's
+  own code path exercises is patched normally — see PR #15 (`jackson-databind` 2.15.2 → 2.21.2).
+
+If you believe a flagged advisory does affect a code path the plugin actually executes, please
+report it via private vulnerability reporting (above) rather than dismissing the alert.
